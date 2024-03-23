@@ -12,6 +12,19 @@ import random
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
+class Song:
+  def create_song(Name, Artist, Duration, Genre): #genre used for recommendations
+    songName = Name
+    songArtist = Artist
+    songDuration = Duration
+    songGenre = Genre
+
+class FriendRequest:
+  def create_friend_request(Sender, Recipient):
+      sender = Sender
+      recipient = Recipient
+
+
 class Account:
   # Method to create an account ***
   def create_account(Name, Email):
