@@ -9,25 +9,52 @@ Original file is located at
 
 import os
 import random
+from api import getSong, ms_to_mins_secs
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
 class Song:
-  def create_song(Name, Artist, Duration, Genre): #genre used for recommendations
-    songName = Name
-    songArtist = Artist
-    songDuration = Duration
-    songGenre = Genre
+  def __init__(self, name, artist, duration, id): #genre used for recommendations
+    self._song_id = id
+    self._song_name = name
+    self._song_artist = artist
+    self._song_duration = duration
+  
+  @property
+  def song_id(self):
+    return self._song_id
+  
+  @property
+  def song_name(self):
+    return self._song_name
+  
+  @property
+  def song_artist(self):
+    return self._song_artist
+  
+  @property
+  def song_duration(self):
+    return self._song_duration
+  
+  @song_duration.setter
+  def song_duration(self, value):
+    self._song_duration = value
+  
+  def ms_to_mins_secs(ms):
+    seconds = round((ms / 1000) % 60)
+    minutes = int((ms / (1000 * 60)) % 60)
+    return str(minutes) + ":" + str(seconds)
+  
 
 class FriendRequest:
-  def create_friend_request(Sender, Recipient):
+  def __init__(self, sender, recipient):
       sender = Sender
       recipient = Recipient
 
 
 class Account:
   # Method to create an account ***
-  def create_account(Name, Email):
+  def __init__(self, name, email):
     username = Name
     password = input("Please enter a password for your account: ")
     password2 = input("Confirm password: ")
@@ -41,7 +68,8 @@ class Account:
   # Sending a friend request ***
   def send_fr(username):
     if username: # If username exists in system
-      # -> Send accept_fr to other user
+      # -> Send accept_fr to other 
+      return None
 
   # Responding to a friend request ***
   def accept_fr():
@@ -52,50 +80,57 @@ class Account:
     else:
       return "You have declined the request"
 
-  # Create subclass of music playlist for an account
-  class MusicPlaylist:
-    # Method to create a playlist ***
-    def create_playlist(playlist_name):
-      pl = playlist_name
-      pl_songs = []
-      pl_accessible = True
-      return pl
+# Create subclass of music playlist for an account
+class MusicPlaylist:
+  # Method to create a playlist ***
+  def __init__(self, playlist_name):
+    pl = playlist_name
+    pl_songs = []
+    pl_accessible = True
+    return pl
 
-    def addSong(song):
-      pl_songs.append(song)
-      return("Song has been successfully added to playlist")
+  def addSong(song):
+    pl_songs.append(song)
+    return("Song has been successfully added to playlist")
 
-    # Defining a search bar ***
-    def search_bar():
-      search = input()
+  # Defining a search bar ***
+  def search_bar():
+    search = input()
 
-    # Play a song ***
-    def play(song):
-      # Insert media player to play a song
+  # Play a song ***
+  def play(song):
+  # Insert media player to play a song
+    return None
 
-    # Pause a song ***
-    def pause(song):
-      # Insert media player to pause a song
+  # Pause a song ***
+  def pause(song):
+    # Insert media player to pause a song
+    return None
 
-    # Skip a song ***
-    def skip(song):
-      # Insert media player to skip a song
+  # Skip a song ***
+  def skip(song):
+    # Insert media player to skip a song
+    return None
 
-    # Shuffle playlist ***
-    def shuffle(pl):
-      random.shuffle(pl)
+  # Shuffle playlist ***
+  def shuffle(pl):
+    random.shuffle(pl)
 
-    # Automatically play the next song (temporal event) ***
-    def play_next(pl):
-      # When song finishes, play next song in queue
+  # Automatically play the next song (temporal event) ***
+  def play_next(pl):
+    # When song finishes, play next song in queue
+    return None
 
-    # Share a playlist via link ***
-    def share_pl(pl)
-      # Update playlist record
+  # Share a playlist via link ***
+  def share_pl(pl):
+  # Update playlist record
+    return None
+  
 
-    # Change playlist accessibility ***
-    def accessibility(pl):
-      # Set playlist as either public or private
+  # Change playlist accessibility ***
+  def accessibility(pl):
+  # Set playlist as either public or private
+    return None
 
 
 # A record of all the available searches in the system
@@ -103,11 +138,22 @@ class DataBase:
   # Method that saves a catalog of music in system***
   def songs():
     # A list of all avalible songs
+    return None
 
   # Store list of all avalible accounts ***
   def accounts():
     # Defined list of created accounts in system
+    return None
 
   # Store list of all public playlists ***
   def playlists():
     # List of all public playlists in system (searchable by name, genre, etc.)
+    return None
+
+def main():
+  song = input("Which song would you like to listen to? ")
+  details = (getSong(song))
+  song1 = Song(details[1], details[2], details[3], details[0])
+  print("Song Info: " + song1.song_artist + " - " + song1.song_name + " - " + song1.song_duration)
+
+main()
