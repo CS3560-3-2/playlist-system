@@ -4,11 +4,11 @@ from tkinter import messagebox
 
 #implement these at later date
 def validate_login():
-    #check the db to see if the user exists and if so, does the password match?
     userid  = username_entry.get()
     password = password_entry.get()
 
-    #change to use methods from 
+    #check the db to see if the user exists and if so, does the password match?
+    #use methods from 'cs_3560_project.py' to perform these checks from the db
     if userid == "admin" and password == "password":
         messagebox.showinfo("Login Successful", "Welcome, Admin!")
     else:
