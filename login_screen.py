@@ -4,9 +4,11 @@ from tkinter import messagebox
 
 #implement these at later date
 def validate_login():
+    #check the db to see if the user exists and if so, does the password match?
     userid  = username_entry.get()
     password = password_entry.get()
 
+    #change to use methods from 
     if userid == "admin" and password == "password":
         messagebox.showinfo("Login Successful", "Welcome, Admin!")
     else:
@@ -20,6 +22,7 @@ def validate_register():
         messagebox.showinfo("Registration Successful!")
     else:
         messagebox.showerror("Registration Failed", "Invalid username or password.")
+    #create an Account object. Make sure we have code within the Account class that updates the db with credentials
 
 class App(tk.Tk):
     def __init__(self):
@@ -92,7 +95,7 @@ class App(tk.Tk):
         self.login_frame.pack()
 
 if __name__ == '__main__':
-    # instanciate App and run it
+    # instantiate App and run it
     app = App()
     app.mainloop()
 
