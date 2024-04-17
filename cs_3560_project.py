@@ -9,7 +9,7 @@ Original file is located at
 
 import os
 import random
-from api import getSong, ms_to_mins_secs
+from api import getSong
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
@@ -40,12 +40,6 @@ class Song:
   def song_duration(self, value):
     self._song_duration = value
   
-  def ms_to_mins_secs(ms):
-    seconds = round((ms / 1000) % 60)
-    minutes = int((ms / (1000 * 60)) % 60)
-    return str(minutes) + ":" + str(seconds)
-  
-
 class FriendRequest:
   def __init__(self, sender, recipient):
       sender = Sender
@@ -54,16 +48,11 @@ class FriendRequest:
 
 class Account:
   # Method to create an account ***
-  def __init__(self, name, email):
-    username = Name
-    password = input("Please enter a password for your account: ")
-    password2 = input("Confirm password: ")
-    if (password == password2):
-      user_password = password
-    return username
-
-  pl_songs = []
-  friendlist = []
+  def __init__(self, userid, password):
+    self._userid = userid
+    self._password = password
+    self._friend_list = []
+    self._playlists = []
 
   # Sending a friend request ***
   def send_fr(username):
