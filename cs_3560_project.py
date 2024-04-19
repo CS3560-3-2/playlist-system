@@ -9,7 +9,7 @@ Original file is located at
 
 import os
 import random
-from api import getSong
+from api import getSong, playSong
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
@@ -138,11 +138,3 @@ class DataBase:
   def playlists():
     # List of all public playlists in system (searchable by name, genre, etc.)
     return None
-
-def main():
-  song = input("Which song would you like to listen to? ")
-  details = (getSong(song))
-  song1 = Song(details[1], details[2], details[3], details[0])
-  print("Song Info: " + song1.song_artist + " - " + song1.song_name + " - " + song1.song_duration)
-
-main()
