@@ -28,10 +28,16 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Login Screen")
-        self.geometry("428x926")
+        self.geometry("1600x900")
 
         #create each frame within the app class
         #pack() function used to display elements on screen
+
+
+
+        ##
+        #LOGIN FRAME
+        ##
         self.login_frame = tk.Frame(self)
         username_label = tk.Label(self.login_frame, text = "Username:")
         username_label.pack()
@@ -56,6 +62,10 @@ class App(tk.Tk):
         register_button.pack()
 
 
+
+        ##
+        #REGISTER FRAME
+        ##
         self.register_frame = tk.Frame(self)
         username_label = tk.Label(self.register_frame, text = "Username:")
         username_label.pack()
@@ -80,8 +90,9 @@ class App(tk.Tk):
 
         self.login_frame.pack()
 
+
+
     def to_register(self):
-        
         #forget the current frame/screen
         self.login_frame.forget()
 

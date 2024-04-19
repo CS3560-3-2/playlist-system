@@ -7,11 +7,19 @@ import spotipy
 from pprint import pprint
 
 def getSong(song):
-  results= sp.search(q="track:" + song, type="track", limit="1")
-  songInfo = (results["tracks"]["items"][0]["id"], results["tracks"]["items"][0]["name"], results["tracks"]["items"][0]["artists"][0]["name"], 
-            ms_to_mins_secs(results["tracks"]["items"][0]["duration_ms"]))
-  sp.start_playback(uris=["spotify:track:" + songInfo[0]])
-  return songInfo
+  #search for the top 10 result of the given input
+  results = sp.search(q="track:" + song, type="track", limit="10")
+  songs = []
+
+  #each row in tracks is the id, track name, artist name, and duration of each of the top 10 tracks
+  for tracks in range(len(results["tracks"]["items"])):
+    songs.append([results["tracks"]["items"][tracks]["id"], results["tracks"]["items"][tracks]["name"], results["tracks"]["items"][tracks]["artists"][0]["name"], 
+            ms_to_mins_secs(results["tracks"]["items"][tracks]["duration_ms"])])
+  return songs
+
+def playSong(songs, num):
+   #plays the song corresponding to the id
+   sp.start_playback(uris=["spotify:track:" + songs[int(num)][0]])
 
 def ms_to_mins_secs(ms):
     seconds = round((ms / 1000) % 60)
