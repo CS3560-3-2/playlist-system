@@ -53,7 +53,7 @@ class FriendRequest:
       self.sender = sender
       self.recipient = recipient """
 
-class Account:
+""" class Account:
   # Method to create an account ***
   def __init__(self, username, password):
     self._username = username
@@ -80,10 +80,10 @@ class Account:
     return self._username
   
   def getPassword(self):
-    return self._password
+    return self._password """
   
 # Create subclass of music playlist for an account
-class MusicPlaylist:
+''' class MusicPlaylist:
   # Method to create a playlist ***
   def __init__(self, playlist_name, playlist_duration):
     self.playlist_name = playlist_name
@@ -109,7 +109,7 @@ class MusicPlaylist:
     return self.playlist_duration
   
   def setPlaylistDuration(self, duration):
-    self.playlist_duration = duration
+    self.playlist_duration = duration '''
 
 
 #Methods that send songs to the database 
@@ -127,22 +127,22 @@ class DataBase:
     cursor.execute(addAccount, account)
 
   # Store list of all public playlists ***
-  def addPlaylists(name, duration):
-    length = MusicPlaylist.songs.length
-    addPlaylist = "INSERT INTO User (Name, Length, Duration) VALUES (%s, %s, %s)"
-    playlist = (name, MusicPlaylist.songs.length, duration)
+  def addPlaylists(name):
+    addPlaylist = "INSERT INTO User (Name) VALUES (%s)"
+    playlist = (name)
     cursor.execute(addPlaylist, playlist)
 
+  #All getters and setters for the DataBase
   def getSongName(name, id):
     val = (name, id)
     command = "SELECT Name FROM Song WHERE Name = '%s' AND song_ID = '%s';"
-    songName = cursor.execte(command, val)
+    songName = cursor.execute(command, val)
     return songName
   
   def getSongArtist(artist, id):
     val = (artist, id)
     command = "SELECT Artist FROM Song WHERE Artist = '%s' AND song_ID = '%s';"
-    songArtist = cursor.execte(command, val)
+    songArtist = cursor.execute(command, val)
     return songArtist
   
   def getSongDuration(duration, id):
@@ -154,23 +154,55 @@ class DataBase:
   def getPlaylistName(name, id):
     val = (name, id)
     command = "SELECT Name FROM Playlist WHERE Name = '%s' AND playlist_ID = '%s';"
-    playlistName = cursor.execte(command, val)
+    playlistName = cursor.execute(command, val)
     return playlistName
   
   def getPlaylistLength(length, id):
     val = (length, id)
     command = "SELECT Length FROM Playlist WHERE Length = '%s' AND playlist_ID = '%s';"
-    playlistLength = cursor.execte(command, val)
+    playlistLength = cursor.execute(command, val)
     return playlistLength
   
   def getPlaylistDuration(duration, id):
     val = (duration, id)
     command = "SELECT Duration FROM Playlist WHERE Duration = '%s' AND playlist_ID = '%s';"
-    playlistLength = cursor.execte(command, val)
+    playlistLength = cursor.execute(command, val)
     return playlistLength
   
   def getAccountName(name, id):
     val = (name, id)
-    command = "SELECT Length FROM Playlist WHERE Length = '%s' AND playlist_ID = '%s';"
-    accountName = cursor.execte(command, val)
+    command = "SELECT Username FROM User WHERE Username = '%s';"
+    accountName = cursor.execute(command, val)
     return accountName
+
+  def getAccountID(name):
+    val = (name)
+    command = "SELECT user_ID FROM User WHERE Username = '%s';"
+    accountID = cursor.execute(command, val)
+    return accountID
+
+  def sendFriendRequest(usernameOne, usernameTwo):
+    val = (usernameOne.getAccountID, usernameTwo.getAccountID)
+    command = "INSERT INTO FriendRequest (user_ID, friend_ID) VALUES (%s, %s)"
+    cursor.execute(command, val)
+
+  def getFriendRequest(username):
+    command = "SELECT * FROM FriendRequest WHERE user_ID = '%s';"
+    requestList = cursor.execute(command, username.getAccountID)
+    return requestList
+
+  def addFriend(usernameOne, usernameTwo, acceptance):
+    val = (usernameOne.getAccountID, usernameTwo.getAccountID)
+    if acceptance == True :
+      command = "UPDATE FriendRequest SET Added = 1; INSERT INTO Friends (user_ID, friend_ID) VALUES (%s, %s);"
+      cursor.execute(command)
+    else :
+      command = "DELETE FROM FreindRequest WHERE user_ID = '%s' AND friend_ID = '%s';"
+      cursor.execute(command,val)
+
+  def getFriends(self):
+    command = "SELECT * FROM Friends WHERE user_ID = '%s';"
+    friendList = cursor.execute(command , self.getAccountID)
+    return friendList
+
+   
