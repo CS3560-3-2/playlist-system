@@ -13,15 +13,15 @@ from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
-'''
+
 mydb = mysql.connector.connect(
-    host = "localhost",
+    host = "DESKTOP-1HPMV6C",
     user = "root",
     password = "password",
     database = "playlist",
 ) 
 cursor = mydb.cursor()
-'''
+
 
 class Song:
   def __init__(self, name, artist, duration, song_id): #genre used for recommendations
@@ -195,8 +195,7 @@ class MusicPlaylist:
   # Update playlist record
     return None
 
-
-'''
+  
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -320,3 +319,4 @@ if __name__ == "__main__":
   my_pl.shuffle()
 
   my_pl.display_songs()
+  '''
