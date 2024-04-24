@@ -9,13 +9,13 @@ Original file is located at
 
 import os
 import random
-from api import getSong, playSong
+from api import getSong, playSong, ms_to_mins_secs
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
 class Song:
-  def __init__(self, name, artist, duration, id): #genre used for recommendations
-    self._song_id = id
+  def __init__(self, name, artist, duration, song_id): #genre used for recommendations
+    self._song_id = song_id
     self._song_name = name
     self._song_artist = artist
     self._song_duration = duration
@@ -34,58 +34,62 @@ class Song:
   
   @property
   def song_duration(self):
-    return self._song_duration
+    return ms_to_mins_secs(int(self._song_duration))
   
-  @song_duration.setter
-  def song_duration(self, value):
-    self._song_duration = value
-  
-class FriendRequest:
-  def __init__(self, sender, recipient):
-      sender = Sender
-      recipient = Recipient
+  def __str__(self):
+    return self._song_name
 
-
-class Account:
-  # Method to create an account ***
-  def __init__(self, userid, password):
-    self._userid = userid
-    self._password = password
-    self._friend_list = []
-    self._playlists = []
-
-  # Sending a friend request ***
-  def send_fr(username):
-    if username: # If username exists in system
-      # -> Send accept_fr to other 
-      return None
-
-  # Responding to a friend request ***
-  def accept_fr():
-    response = input("X has sent you a friend request: Would you like to accept or decline?")
-    if (response == "Accept"):
-      friendlist.append(username)
-      return "You and user are now friends"
-    else:
-      return "You have declined the request"
-
-# Create subclass of music playlist for an account
 class MusicPlaylist:
   # Method to create a playlist ***
   def __init__(self, playlist_name):
-    pl = playlist_name
-    pl_songs = []
-    pl_accessible = True
-    return pl
+    self._songs = []
+    self._playlist_name = playlist_name
+    self._length = 0
+    self._duration = 0
 
-  def addSong(song):
-    pl_songs.append(song)
-    return("Song has been successfully added to playlist")
+  @property
+  def songs(self):
+    return self._songs
 
-  # Defining a search bar ***
-  def search_bar():
-    search = input()
+  @property
+  def playlist_name(self):
+    return self._playlist_name
+    
+  @playlist_name.setter
+  def playlist_name(self, value):
+    self._playlist_name = value
 
+  @property
+  def length(self):
+    return self._length
+    
+  @length.setter
+  def length(self, value):
+    self._length = value
+
+  @property
+  def duration(self):
+    return ms_to_mins_secs(self._duration)
+    
+  @duration.setter
+  def playlist_name(self, value):
+    self._duration = value
+
+  def add_song(self, song):
+    new_song = Song(song[1], song[2], song[3], song[0])
+    self._songs.append(new_song)
+    self._length = self._length + 1
+    self._duration = self._duration + song[3]
+
+  def search_song(self, name):
+    search = getSong(name)
+    return search
+
+  def display_songs(self):
+    for song in self.songs:
+      print(song)
+
+  #CONTINUE HERE ON 4/23
   # Play a song ***
   def play(song):
   # Insert media player to play a song
@@ -115,12 +119,33 @@ class MusicPlaylist:
   # Update playlist record
     return None
   
+class FriendRequest:
+  def __init__(self, sender, recipient):
+      sender = Sender
+      recipient = Recipient
 
-  # Change playlist accessibility ***
-  def accessibility(pl):
-  # Set playlist as either public or private
-    return None
+class Account:
+  # Method to create an account ***
+  def __init__(self, userid, password):
+    self._userid = userid
+    self._password = password
+    self._friend_list = []
+    self._playlists = []
 
+  # Sending a friend request ***
+  def send_fr(username):
+    if username: # If username exists in system
+      # -> Send accept_fr to other 
+      return None
+
+  # Responding to a friend request ***
+  def accept_fr():
+    response = input("X has sent you a friend request: Would you like to accept or decline?")
+    if (response == "Accept"):
+      friendlist.append(username)
+      return "You and user are now friends"
+    else:
+      return "You have declined the request"
 
 # A record of all the available searches in the system
 class DataBase:
@@ -138,3 +163,20 @@ class DataBase:
   def playlists():
     # List of all public playlists in system (searchable by name, genre, etc.)
     return None
+  
+if __name__ == "__main__":
+
+  #TESTING PLAYLIST METHODS
+  my_pl = MusicPlaylist("Playlist 1")
+
+  search = input("What song would you like to add to the playlist? ")
+  query = my_pl.search_song(search)
+  #returns list of tuples containing the top 10 search results for the given song name
+  print(query)
+  selection = input("which index would you like to add to the playlist? ")
+  #add the desired search result to the playlist
+  my_pl.add_song(query[int(selection)])
+
+  my_pl.display_songs()
+  print(my_pl.length)
+  print(my_pl.duration)
