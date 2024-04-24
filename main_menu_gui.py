@@ -1,37 +1,83 @@
 import tkinter as tk
+from tkinter import ttk
 from tkinter import *
+from PIL import ImageTk, Image
 
-mainMenu = tk.Tk()
-mainMenu.title('Main Menu')
-#Geometry to be determined
 
-emptySpace = tk.Label(mainMenu, text = "     ")
+class MainMenu(tk.Tk):
+    def create_playlist(self):
+    # Create a new window
+        window = tk.Toplevel()
+        window.geometry('500x300')
 
-mainMenuLabel = tk.Label(mainMenu, text  = 'Main Menu')
-mainMenuLabel.grid(row = 0, column = 0, columnspan = 2)
+        # Create a label and a text box entry
+        label = tk.Label(window, text="Enter a playlist name:")
+        label.pack()
+        entry = tk.Entry(window)
+        entry.pack()
 
-playlistsLabel = tk.Label(mainMenu, text  = 'Playlists')
-playlistsLabel.grid(row = 1, column = 0)
+        # Create a frame at the bottom of the window
+        button_frame = Frame(window)
+        button_frame.pack(side=BOTTOM)
 
-friendslistLabel = tk.Label(mainMenu, text  = 'Friends')
-friendslistLabel.grid(row = 1, column = 1)
+        # Create a confirmation button
+        confirm_button = tk.Button(button_frame, text="Create Playlist", command=lambda: YourPlaylist(self, entry.get()))
+        confirm_button.pack()
 
-createPlaylist = tk.Button(mainMenu, text = 'Create Playlist') #command = create playlist
-createPlaylist.grid(row = 2, column = 0)
+        # Create a cancel button
+        cancel_button = Button(button_frame, text="Cancel", command=window.destroy)
+        cancel_button.pack(side=RIGHT, padx=5, pady=5, fill=X)
 
-addFriend = tk.Button(mainMenu, text = 'Add Friend') #command = addfriend
-#addfridn can send to a separate window where you can see current friends, friend requests sent and incoming, and buttons for sending-accepting-denying
+    def add_friend(self):
+    # Create a new window
+        window = tk.Toplevel()
+        window.geometry('500x300')
+        # Create a label and an entry widget
+        label = tk.Label(window, text="Enter username:")
+        label.pack()
+        entry = tk.Entry(window)
+        entry.pack()
 
-addFriend.grid(row = 2, column = 1)
+        # Create a confirmation button
+        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.add_friend(entry.get()))
+        confirm_button.pack()
 
-#Iterate through users playlists and create buttons for each
-#Button leads to new window for a playlist
-testButton1 = tk.Button(mainMenu, text = 'sample playlist') #command = openplaylist
-testButton1.grid(row = 3, column = 0)
 
-#Iterate through friendslist and create labels for each friend, maybe buttons for friend profiles
-testLabel1 = tk.Label(mainMenu, text = 'sample friend')
-testLabel1.grid(row = 3, column = 1)
+    def __init__(self):
+        tk.Tk.__init__(self)
+        self.title('Main Menu')
+        self.geometry('1600x900')
 
-mainMenu.mainloop()
+        self.new_frame = tk.Frame(self)
 
+        self.mainMenuLabel = tk.Label(self, text='Main Menu', font = 'Arial 18')
+        self.mainMenuLabel.place(x=700, y = 10)
+
+        self.playlistsLabel = tk.Label(self, text='Your Playlists', font = 'Arial 14', height=10, width=10)
+        self.playlistsLabel.place(x=100, y = 5)
+
+        self.friendslistLabel = tk.Label(self, text='FriendList', font = 'Arial 14', height=10, width=10)
+        self.friendslistLabel.place(x=1250, y = 5)
+
+        self.createPlaylist = tk.Button(self, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = self.create_playlist) # command = create_playlist
+        self.createPlaylist.place(x=670, y = 80)
+
+        self.addFriend = tk.Button(self, text='Add Friend', font = 'Arial 14', height=10, width=20, command = self.add_friend) # command = add_friend
+        self.addFriend.place(x=670, y = 330)
+
+       # confirm_button = tk.Button(button_frame, text="Create Playlist", command=lambda: YourPlaylist(self, entry.get()))
+
+        self.SearchButton = tk.Button(self, text='Search for Playlists', font = 'Arial 14', height=12, width=20, command=lambda: SearchScreen(self)) # command = open_playlist
+        self.SearchButton.place(x=670, y = 580)
+
+        # Iterate through users playlists and create buttons for each
+        # Button leads to a new window for a playlist
+
+        # Iterate through friendslist and create labels for each friend
+        # Maybe buttons for friend profiles
+
+
+
+if __name__ == '__main__':
+    app = MainMenu()
+    app.mainloop()
