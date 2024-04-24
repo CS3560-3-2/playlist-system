@@ -17,9 +17,12 @@ def getSong(song):
             results["tracks"]["items"][tracks]["duration_ms"]))
   return songs
 
-def playSong(songs, num):
+def playSong(num):
    #plays the song corresponding to the id
-   sp.start_playback(uris=["spotify:track:" + songs[int(num)][0]])
+   sp.start_playback(uris=["spotify:track:" + str(num)])
+
+def pauseSong():
+   sp.pause_playback()
 
 def ms_to_mins_secs(ms):
     seconds = round((ms / 1000) % 60)

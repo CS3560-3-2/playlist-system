@@ -18,7 +18,7 @@ def play_selected(e):
     typed = search_bar.get()
     songs = getSong(typed)
     selected = result_list.curselection()
-    playSong(songs, selected[0])
+    playSong(songs[selected[0]][0])
 
 search_label = Label(root, text="Search for music.")
 search_label.pack()
