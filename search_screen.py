@@ -17,8 +17,8 @@ def check(e):
 def play_selected(e):
     typed = search_bar.get()
     songs = getSong(typed)
-    index = result_list.curselection()
-    playSong(songs, index[0])
+    selected = result_list.curselection()
+    playSong(songs, selected[0])
 
 search_label = Label(root, text="Search for music.")
 search_label.pack()

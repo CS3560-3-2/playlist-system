@@ -33,8 +33,6 @@ class App(tk.Tk):
         #create each frame within the app class
         #pack() function used to display elements on screen
 
-
-
         ##
         #LOGIN FRAME
         ##

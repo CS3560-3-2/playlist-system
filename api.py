@@ -13,8 +13,8 @@ def getSong(song):
 
   #each row in tracks is the id, track name, artist name, and duration of each of the top 10 tracks
   for tracks in range(len(results["tracks"]["items"])):
-    songs.append([results["tracks"]["items"][tracks]["id"], results["tracks"]["items"][tracks]["name"], results["tracks"]["items"][tracks]["artists"][0]["name"], 
-            ms_to_mins_secs(results["tracks"]["items"][tracks]["duration_ms"])])
+    songs.append((results["tracks"]["items"][tracks]["id"], results["tracks"]["items"][tracks]["name"], results["tracks"]["items"][tracks]["artists"][0]["name"], 
+            results["tracks"]["items"][tracks]["duration_ms"]))
   return songs
 
 def playSong(songs, num):

@@ -9,51 +9,53 @@ Original file is located at
 import mysql.connector 
 import os
 import random
-from api import getSong, playSong
+from api import getSong, playSong, ms_to_mins_secs
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
+'''
 mydb = mysql.connector.connect(
     host = "localhost",
     user = "root",
     password = "password",
     database = "playlist",
 ) 
-
 cursor = mydb.cursor()
-""" class Song:
-  def __init__(self, name, artist, duration, id): #genre used for recommendations
-    self._song_id = id
+'''
+
+class Song:
+  def __init__(self, name, artist, duration, song_id): #genre used for recommendations
+    self._song_id = song_id
     self._song_name = name
     self._song_artist = artist
     self._song_duration = duration
   
   @property
-  def getSong_id(self):
+  def song_id(self):
     return self._song_id
   
   @property
-  def getSongName(self):
+  def song_name(self):
     return self._song_name
   
   @property
-  def getSongArtist(self):
+  def song_artist(self):
     return self._song_artist
   
   @property
-  def songDuration(self):
-    return self._song_duration
+  def song_duration(self):
+    return ms_to_mins_secs(int(self._song_duration))
   
-  @songDuration.setter
-  def song_duration(self, value):
-    self._song_duration = value
+  def __str__(self):
+    return self._song_name
+
   
 class FriendRequest:
   def __init__(self, sender, recipient):
       self.sender = sender
-      self.recipient = recipient """
+      self.recipient = recipient
 
-""" class Account:
+class Account:
   # Method to create an account ***
   def __init__(self, username, password):
     self._username = username
@@ -80,38 +82,91 @@ class FriendRequest:
     return self._username
   
   def getPassword(self):
-    return self._password """
+    return self._password
   
 # Create subclass of music playlist for an account
-''' class MusicPlaylist:
+class MusicPlaylist:
   # Method to create a playlist ***
-  def __init__(self, playlist_name, playlist_duration):
-    self.playlist_name = playlist_name
-    self.playlist_songs = []
-    self.playlist_duration = playlist_duration
+  def __init__(self, playlist_name):
+    self._songs = []
+    self._playlist_name = playlist_name
+    self._length = 0
+    self._duration = 0
 
-  #add songs to list
-  def addSong(self, song):
-    self.playlist_songs.append(song)
-    return("Song has been successfully added to playlist")
-
-  #returns all songs in playlist
+  @property
   def songs(self):
-    return self.playlist_songs
-  
-  def getPlaylistName(self):
-    return self.playlist_name
-  
-  def setPlaylistName(self, name):
-    self.playlist_name = name
-  
-  def getPlaylistDuration(self):
-    return self.playlist_duration
-  
-  def setPlaylistDuration(self, duration):
-    self.playlist_duration = duration '''
+    return self._songs
+
+  @property
+  def playlist_name(self):
+    return self._playlist_name
+    
+  @playlist_name.setter
+  def playlist_name(self, value):
+    self._playlist_name = value
+
+  @property
+  def length(self):
+    return self._length
+    
+  @length.setter
+  def length(self, value):
+    self._length = value
+
+  @property
+  def duration(self):
+    return ms_to_mins_secs(self._duration)
+    
+  @duration.setter
+  def playlist_name(self, value):
+    self._duration = value
+
+  def add_song(self, song):
+    new_song = Song(song[1], song[2], song[3], song[0])
+    self._songs.append(new_song)
+    self._length = self._length + 1
+    self._duration = self._duration + song[3]
+
+  def search_song(self, name):
+    search = getSong(name)
+    return search
+
+  def display_songs(self):
+    for song in self.songs:
+      print(song)
+
+  #CONTINUE HERE ON 4/23
+  # Play a song ***
+  def play(song):
+  # Insert media player to play a song
+    return None
+
+  # Pause a song ***
+  def pause(song):
+    # Insert media player to pause a song
+    return None
+
+  # Skip a song ***
+  def skip(song):
+    # Insert media player to skip a song
+    return None
+
+  # Shuffle playlist ***
+  def shuffle(pl):
+    random.shuffle(pl)
+
+  # Automatically play the next song (temporal event) ***
+  def play_next(pl):
+    # When song finishes, play next song in queue
+    return None
+
+  # Share a playlist via link ***
+  def share_pl(pl):
+  # Update playlist record
+    return None
 
 
+'''
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -204,5 +259,34 @@ class DataBase:
     command = "SELECT * FROM Friends WHERE user_ID = '%s';"
     friendList = cursor.execute(command , self.getAccountID)
     return friendList
+'''
 
    
+if __name__ == "__main__":
+
+  #TESTING PLAYLIST METHODS
+  my_pl = MusicPlaylist("Playlist 1")
+
+  search = input("What song would you like to add to the playlist? ")
+  query = my_pl.search_song(search)
+  #returns list of tuples containing the top 10 search results for the given song name
+  print(query)
+  selection = input("which index would you like to add to the playlist? ")
+  #add the desired search result to the playlist
+  my_pl.add_song(query[int(selection)])
+
+  my_pl.display_songs()
+  print(my_pl.length)
+  print(my_pl.duration)
+
+  search = input("What song would you like to add to the playlist? ")
+  query = my_pl.search_song(search)
+  #returns list of tuples containing the top 10 search results for the given song name
+  print(query)
+  selection = input("which index would you like to add to the playlist? ")
+  #add the desired search result to the playlist
+  my_pl.add_song(query[int(selection)])
+
+  my_pl.display_songs()
+  print(my_pl.length)
+  print(my_pl.duration)
