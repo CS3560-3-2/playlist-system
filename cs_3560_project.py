@@ -9,7 +9,7 @@ Original file is located at
 import mysql.connector 
 import os
 import random
-from api import getSong, playSong, ms_to_mins_secs
+from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
@@ -92,6 +92,8 @@ class MusicPlaylist:
     self._playlist_name = playlist_name
     self._length = 0
     self._duration = 0
+    self._current_song = None
+    self._playing = False
 
   @property
   def songs(self):
@@ -116,44 +118,72 @@ class MusicPlaylist:
   @property
   def duration(self):
     return ms_to_mins_secs(self._duration)
+  
+  @property
+  def current_song(self):
+    return self._current_song
     
-  @duration.setter
-  def playlist_name(self, value):
-    self._duration = value
+  @current_song.setter
+  def current_song(self, value):
+    self._current_song = value
 
+  @property
+  def playing(self):
+    return self._playing
+  
+  @playing.setter
+  def playing(self, value):
+    self._playing = value
+
+  #takes a tuple containing song name, artist, duration, and id as input
   def add_song(self, song):
     new_song = Song(song[1], song[2], song[3], song[0])
     self._songs.append(new_song)
     self._length = self._length + 1
     self._duration = self._duration + song[3]
 
+  #calls spotify api to search by name
   def search_song(self, name):
     search = getSong(name)
     return search
 
+  #print elements in song list
   def display_songs(self):
     for song in self.songs:
       print(song)
 
-  #CONTINUE HERE ON 4/23
-  # Play a song ***
-  def play(song):
-  # Insert media player to play a song
+  #returns a song object
+  def get_song(self, index):
+    return self.songs[int(index)]
+  
+  # Play a song based off it's index in the playlist***
+  def play(self, playlist_index):
+    now_playing = self.get_song(playlist_index)
+    self.current_song = playing_index
+    self.playing = True
+    playSong(now_playing.song_id)
     return None
 
   # Pause a song ***
-  def pause(song):
+  def pause(self):
     # Insert media player to pause a song
+    pauseSong()
     return None
 
   # Skip a song ***
-  def skip(song):
-    # Insert media player to skip a song
+  def skip(self):
+    #if on the last song of the playlist, loop back to the first
+    if(int(self.current_song) == int(self.length - 1)):
+      self.current_song = 0
+    else:
+      #set current song to next song and play it
+      self.current_song = int(self.current_song) + 1
+    self.play(self.current_song)
     return None
 
   # Shuffle playlist ***
-  def shuffle(pl):
-    random.shuffle(pl)
+  def shuffle(self):
+    random.shuffle(self.songs)
 
   # Automatically play the next song (temporal event) ***
   def play_next(pl):
@@ -275,9 +305,7 @@ if __name__ == "__main__":
   #add the desired search result to the playlist
   my_pl.add_song(query[int(selection)])
 
-  my_pl.display_songs()
-  print(my_pl.length)
-  print(my_pl.duration)
+  print("\n")
 
   search = input("What song would you like to add to the playlist? ")
   query = my_pl.search_song(search)
@@ -288,5 +316,7 @@ if __name__ == "__main__":
   my_pl.add_song(query[int(selection)])
 
   my_pl.display_songs()
-  print(my_pl.length)
-  print(my_pl.duration)
+
+  my_pl.shuffle()
+
+  my_pl.display_songs()
