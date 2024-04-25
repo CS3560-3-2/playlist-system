@@ -4,7 +4,6 @@ from tkinter import *
 from PIL import ImageTk, Image
 
 class MainMenu(tk.Tk):
-
     def create_playlist(self):
         # Create a new frame in the main window
         self.create_frame = tk.Frame(self)
@@ -34,7 +33,14 @@ class MainMenu(tk.Tk):
 
     # Go to Playlist
     def to_playlist(self, entry):
-        self.new_playlist = YourPlaylist(self, entry)
+        if (entry == ""): # Error message when playlist name is empty
+            error = tk.Toplevel(self)
+            error.title("Error")
+            error.geometry("200x100")
+            label = tk.Label(error, text="Please give your playlist a name")
+            label.pack()
+        else:
+            self.new_playlist = YourPlaylist(self, entry)
 
     # Return to login
     def to_login(self):
@@ -60,8 +66,9 @@ class MainMenu(tk.Tk):
         entry.pack()
 
         # Create a confirmation button
-        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.add_friend(entry.get()))
+        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.send_fr(entry.get()))
         confirm_button.pack()
+    
 
     # *************** Main Menu **************************
     def __init__(self):
