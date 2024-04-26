@@ -13,15 +13,14 @@ from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
-'''
+
 mydb = mysql.connector.connect(
-    host = "localhost",
+    host = "DESKTOP-1HPMV6C",
     user = "root",
-    password = "password",
     database = "playlist",
 ) 
 cursor = mydb.cursor()
-'''
+
 
 class Song:
   def __init__(self, name, artist, duration, song_id): #genre used for recommendations
@@ -48,6 +47,11 @@ class Song:
   
   def __str__(self):
     return self._song_name
+  
+  # Sends song data to song table in database 
+  #def songToDataBase(self,_song_name, _song_artist, _song_duration, _song_id):
+   # DataBase.addSongsToDB(self._song_name, self._song_artist, self._song_duration, self._song_id)
+
 
   
 class FriendRequest:
@@ -83,6 +87,10 @@ class Account:
   
   def getPassword(self):
     return self._password
+  
+  # Sends account data to the table in database 
+  #def accountToDataBase(self, _username, _password):
+    #DataBase.addAccount(self._username, self._password)
   
 # Create subclass of music playlist for an account
 class MusicPlaylist:
@@ -200,89 +208,92 @@ class MusicPlaylist:
   def share_pl(pl):
   # Update playlist record
     return None
+  
+  # Sends playlist data to playlist table in Database 
+  #def playlistToDataBase(self):
+    #DataBase.addPlaylistsToDB(self._playlist_name)
 
-
-'''
+  
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
-  def addSongs(name, artist, duration, id):
+  def addSongsToDB(name, artist, duration, id):
     addSong = "INSERT INTO Song (Name, Artist, Duration, song_ID) VALUES (%s, %s, %s, %s)"
     song = (name, artist, duration, id)
     cursor.execute(addSong,song)
 
   # Store list of all avalible accounts ***
-  def addAccounts(username, password):
+  def addAccountsToDB(username, password):
     addAccount = "INSERT INTO User (Username, Password) VALUES (%s, %s)"
     account = (username, password)
     cursor.execute(addAccount, account)
 
   # Store list of all public playlists ***
-  def addPlaylists(name):
+  def addPlaylistsToDB(name):
     addPlaylist = "INSERT INTO User (Name) VALUES (%s)"
     playlist = (name)
     cursor.execute(addPlaylist, playlist)
 
   #All getters and setters for the DataBase
-  def getSongName(name, id):
+  def getSongNameFromDB(name, id):
     val = (name, id)
     command = "SELECT Name FROM Song WHERE Name = '%s' AND song_ID = '%s';"
     songName = cursor.execute(command, val)
     return songName
   
-  def getSongArtist(artist, id):
+  def getSongArtistFromDB(artist, id):
     val = (artist, id)
     command = "SELECT Artist FROM Song WHERE Artist = '%s' AND song_ID = '%s';"
     songArtist = cursor.execute(command, val)
     return songArtist
   
-  def getSongDuration(duration, id):
+  def getSongDurationFromDB(duration, id):
     val = (command, id)
     command = "SELECT Name FROM Song WHERE Name = '%s' AND song_ID = '%s';"
     songDuration = cursor.execte(command, val)
     return songDuration
   
-  def getPlaylistName(name, id):
+  def getPlaylistNameFromDB(name, id):
     val = (name, id)
     command = "SELECT Name FROM Playlist WHERE Name = '%s' AND playlist_ID = '%s';"
     playlistName = cursor.execute(command, val)
     return playlistName
   
-  def getPlaylistLength(length, id):
+  def getPlaylistLengthFromDB(length, id):
     val = (length, id)
     command = "SELECT Length FROM Playlist WHERE Length = '%s' AND playlist_ID = '%s';"
     playlistLength = cursor.execute(command, val)
     return playlistLength
   
-  def getPlaylistDuration(duration, id):
+  def getPlaylistDurationFromDB(duration, id):
     val = (duration, id)
     command = "SELECT Duration FROM Playlist WHERE Duration = '%s' AND playlist_ID = '%s';"
     playlistLength = cursor.execute(command, val)
     return playlistLength
   
-  def getAccountName(name, id):
+  def getAccountNameFromDB(name, id):
     val = (name, id)
     command = "SELECT Username FROM User WHERE Username = '%s';"
     accountName = cursor.execute(command, val)
     return accountName
 
-  def getAccountID(name):
+  def getAccountIDFromDB(name):
     val = (name)
     command = "SELECT user_ID FROM User WHERE Username = '%s';"
     accountID = cursor.execute(command, val)
     return accountID
 
-  def sendFriendRequest(usernameOne, usernameTwo):
+  def sendFriendRequestFromDB(usernameOne, usernameTwo):
     val = (usernameOne.getAccountID, usernameTwo.getAccountID)
     command = "INSERT INTO FriendRequest (user_ID, friend_ID) VALUES (%s, %s)"
     cursor.execute(command, val)
 
-  def getFriendRequest(username):
+  def getFriendRequestFromDB(username):
     command = "SELECT * FROM FriendRequest WHERE user_ID = '%s';"
     requestList = cursor.execute(command, username.getAccountID)
     return requestList
 
-  def addFriend(usernameOne, usernameTwo, acceptance):
+  def addFriendFromDB(usernameOne, usernameTwo, acceptance):
     val = (usernameOne.getAccountID, usernameTwo.getAccountID)
     if acceptance == True :
       command = "UPDATE FriendRequest SET Added = 1; INSERT INTO Friends (user_ID, friend_ID) VALUES (%s, %s);"
@@ -291,7 +302,7 @@ class DataBase:
       command = "DELETE FROM FreindRequest WHERE user_ID = '%s' AND friend_ID = '%s';"
       cursor.execute(command,val)
 
-  def getFriends(self):
+  def getFriendsFromDB(self):
     command = "SELECT * FROM Friends WHERE user_ID = '%s';"
     friendList = cursor.execute(command , self.getAccountID)
     return friendList
@@ -326,3 +337,4 @@ if __name__ == "__main__":
   my_pl.shuffle()
 
   my_pl.display_songs()
+  '''
