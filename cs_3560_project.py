@@ -16,6 +16,7 @@ from spotipy.client import Spotify
 from spotipy.oauth2 import SpotifyOAuth
 import mysql.connector 
 import os
+import hashlib
 import random
 from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
@@ -66,8 +67,16 @@ class FriendRequest:
 class Account:
   # Method to create an account ***
   def __init__(self, username, password):
+
+    #setting up salt and hash object
+    salt = os.urandom(32)
+    hash_object = hashlib.sha256()
+    pw = password
+    hash_object.update(salt + pw.encode())
+
+    #Account properties
     self._username = username
-    self._password = password
+    self._password = hash_object.hexdigest()
     self._friend_list = []
     self._playlists = []
     self._account_ID = 0
@@ -181,8 +190,11 @@ class MusicPlaylist:
   
   # Play a song based off it's index in the playlist***
   def play(self, playlist_index):
+    #now_playing equals the Song object at the provided index
     now_playing = self.get_song(playlist_index)
-    self.current_song = playing_index
+
+    #current_song is set equal to the playlist of the currently playing song
+    self.current_song = playlist_index
     self.playing = True
     playSong(now_playing.song_id)
     return None
@@ -211,6 +223,9 @@ class MusicPlaylist:
   # Automatically play the next song (temporal event) ***
   def play_next(pl):
     # When song finishes, play next song in queue
+
+    #have function sleep for amount of time corresponding to current song duration?
+    #take into account song pauses
     return None
 
   # Share a playlist via link ***
@@ -230,7 +245,7 @@ class MusicPlaylist:
 
 
 
-  
+
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -355,6 +370,7 @@ class DataBase:
     command = "SELECT friend_ID FROM Friends WHERE user_ID = '%s';"
     friendList = cursor.execute(command , self.getAccountIDFromDB)
     return friendList
+<<<<<<< HEAD
   
   def getSongsFromPlaylist(id):
     command  = "SELECT Song_ID FROM Playlist_Songs WHERE playlistID = '%s';"
@@ -363,7 +379,17 @@ class DataBase:
 
    
 """ if __name__ == "__main__":
+=======
+
+
+'''
+if __name__ == "__main__":
+
+>>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
   #TESTING PLAYLIST METHODS
+
+  user_1 = Account("matt", "123")
+  print("hashed pw: " + user_1.getPassword())
   my_pl = MusicPlaylist("Playlist 1")
 
   search = input("What song would you like to add to the playlist? ")
@@ -389,6 +415,7 @@ class DataBase:
   my_pl.shuffle()
 
   my_pl.display_songs()
+<<<<<<< HEAD
  """
   
 
@@ -771,3 +798,6 @@ class Search(Tk):
             songs = getSong(typed)
             selected = result_list.curselection()
             playSong(songs[selected[0]][0])
+=======
+'''
+>>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
