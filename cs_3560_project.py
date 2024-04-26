@@ -158,8 +158,11 @@ class MusicPlaylist:
   
   # Play a song based off it's index in the playlist***
   def play(self, playlist_index):
+    #now_playing equals the Song object at the provided index
     now_playing = self.get_song(playlist_index)
-    self.current_song = playing_index
+
+    #current_song is set equal to the playlist of the currently playing song
+    self.current_song = playlist_index
     self.playing = True
     playSong(now_playing.song_id)
     return None
@@ -188,6 +191,9 @@ class MusicPlaylist:
   # Automatically play the next song (temporal event) ***
   def play_next(pl):
     # When song finishes, play next song in queue
+
+    #have function sleep for amount of time corresponding to current song duration?
+    #take into account song pauses
     return None
 
   # Share a playlist via link ***
