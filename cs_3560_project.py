@@ -8,6 +8,7 @@ Original file is located at
 """
 import mysql.connector 
 import os
+import hashlib
 import random
 from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
@@ -62,8 +63,16 @@ class FriendRequest:
 class Account:
   # Method to create an account ***
   def __init__(self, username, password):
+
+    #setting up salt and hash object
+    salt = os.urandom(32)
+    hash_object = hashlib.sha256()
+    pw = password
+    hash_object.update(salt + pw.encode())
+
+    #Account properties
     self._username = username
-    self._password = password
+    self._password = hash_object.hexdigest()
     self._friend_list = []
     self._playlists = []
 
@@ -213,7 +222,7 @@ class MusicPlaylist:
   #def playlistToDataBase(self):
     #DataBase.addPlaylistsToDB(self._playlist_name)
 
-  
+
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -306,12 +315,15 @@ class DataBase:
     command = "SELECT * FROM Friends WHERE user_ID = '%s';"
     friendList = cursor.execute(command , self.getAccountID)
     return friendList
-'''
 
-   
+
+'''
 if __name__ == "__main__":
 
   #TESTING PLAYLIST METHODS
+
+  user_1 = Account("matt", "123")
+  print("hashed pw: " + user_1.getPassword())
   my_pl = MusicPlaylist("Playlist 1")
 
   search = input("What song would you like to add to the playlist? ")
@@ -337,4 +349,4 @@ if __name__ == "__main__":
   my_pl.shuffle()
 
   my_pl.display_songs()
-  '''
+'''
