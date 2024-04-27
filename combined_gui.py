@@ -361,15 +361,7 @@ class Search(Tk):
         result_list = Listbox(self)
         result_list.pack()
 
-<<<<<<< HEAD
         # --------------------------------Main Menu Functions ---------------------------------------------------
-=======
-        #on event, run the specified function
-        search_bar.bind("<Return>", check)
-        result_list.bind("<<ListboxSelect>>", play_selected)
-
-# --------------------------------Search Screen Functions ---------------------------------------------------
->>>>>>> 0da4cdb15ad87b153a72db1151df0f4ab196f080
         def update(data):
             result_list.delete(0, END)
 
