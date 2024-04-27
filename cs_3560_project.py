@@ -20,13 +20,25 @@ import hashlib
 import random
 from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox
+from tkinter import ttk
+from api import getSong, playSong
+from dotenv import load_dotenv
+import os
+import spotipy
+from spotipy.client import Spotify
+from spotipy.oauth2 import SpotifyOAuth
+
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
 
 mydb = mysql.connector.connect(
-    host = "DESKTOP-1HPMV6C",
-    user = "root",
-    database = "playlist",
+  host = "DESKTOP-1HPMV6C",
+  user = "root",
+  database = "playlist",
+   
 ) 
 cursor = mydb.cursor()
 
@@ -110,16 +122,34 @@ class Account:
     return playlists 
   # Sends account data to the table in database
   def addAccount(username, passwordOne, passwordTwo):
-      if(passwordOne == passwordTwo):
+    #fetchone creates an error if multiple accounts with the same username exists
+    #this conditions prevents duplicate accounts
+    command = "SELECT COUNT(*) FROM User WHERE Username = %s"
+    cursor.execute(command, (username,))
+    result = cursor.fetchone()[0]  # Fetch the count result
+    if result > 0:  # True if username exists, False otherwise
+       print('Username has already been taken')
+       return False
+
+    if passwordOne != passwordTwo:
+      print('Try again passwords don\'t match')
+      return False
+      
+    if(passwordOne == passwordTwo):
         DataBase.addAccountsToDB(username, passwordOne)
-      else:
-        print('Try again passwords don\'t match')
+        #print("U: " + username + " P:" + passwordOne)
+        #cursor.execute("SELECT * FROM User")
+        #for x in cursor:
+        #   print (x)
   
-  def checkLogin(username, password):
+  
+  def checkLogin(window, username, password):
       if ((username, password) == DataBase.checkLoginInDB(username, password)):
         print ('success')
+        window.to_mainMenu()
       else:
         print('try again')
+        
 
   
 # Create subclass of music playlist for an account
@@ -298,7 +328,7 @@ class DataBase:
       mydb.commit()
       cursor.reset()
     else :
-      command = "DELETE FROM FreindRequest WHERE user_ID = '%s' AND friend_ID = '%s';"
+      command = "DELETE FROM FreindRequest WHERE user_ID = %s AND friend_ID = %s;"
       cursor.execute(command,val)
       mydb.commit()
       cursor.reset()
@@ -306,7 +336,7 @@ class DataBase:
   # Stores all Songs from a Playlist
   def addToPlaylist(songName, playlistName, username):
     val = (playlistName.getPlaylistIDFromDB(playlistName, username.getAccountIDFromDB),songName.getSongID(songName))
-    command = "INSERT INTO Playlist_Songs (playlist_ID, song_ID) VALUES ('%s', '%s')"
+    command = "INSERT INTO Playlist_Songs (playlist_ID, song_ID) VALUES (%s, %s)"
     cursor.execute (command, val)
     mydb.commit()
     cursor.reset()
@@ -314,102 +344,103 @@ class DataBase:
   #All getters and setters for the DataBase
   def getSongNameFromDB(name, id):
     val = (name, id)
-    command = "SELECT Name FROM Song WHERE Name = '%s' AND song_ID = '%s';"
+    command = "SELECT Name FROM Song WHERE Name = %s AND song_ID = %s;"
     songName = cursor.execute(command, val)
     cursor.reset()
     return songName
   
   def getSongArtistFromDB(artist, id):
     val = (artist, id)
-    command = "SELECT Artist FROM Song WHERE Artist = '%s' AND song_ID = '%s';"
+    command = "SELECT Artist FROM Song WHERE Artist = %s AND song_ID = %s;"
     songArtist = cursor.execute(command, val)
     cursor.reset()
     return songArtist
   
   def getSongDurationFromDB(duration, id):
     val = (command, id)
-    command = "SELECT Duration FROM Song WHERE Name = '%s' AND song_ID = '%s';"
+    command = "SELECT Duration FROM Song WHERE Name = %s AND song_ID = %s;"
     songDuration = cursor.execute(command, val)
     cursor.reset()
     return songDuration
   
   def getSongID(name):
-    command = "SELECT song_ID FROM Song WHERE Name = '%s';"
+    command = "SELECT song_ID FROM Song WHERE Name = %s;"
     song_ID = cursor.execute(command, name)
     cursor.reset()
     return song_ID
   
   def getPlaylistNameFromDB(name, id):
     val = (name, id)
-    command = "SELECT Name FROM Playlist WHERE Name = '%s' AND user_ID = '%s';"
+    command = "SELECT Name FROM Playlist WHERE Name = %s AND user_ID = %s;"
     playlistName = cursor.execute(command, val)
     cursor.reset()
     return playlistName
   
   def getPlaylistLengthFromDB(id):
     val = (id)
-    command = "SELECT Length FROM Playlist WHERE playlist_ID = '%s';"
+    command = "SELECT Length FROM Playlist WHERE playlist_ID = %s;"
     playlistLength = cursor.execute(command, val)
     cursor.reset()
     return playlistLength
   
   def getPlaylistDurationFromDB(id):
     val = (id)
-    command = "SELECT Duration FROM Playlist WHERE playlist_ID = '%s';"
+    command = "SELECT Duration FROM Playlist WHERE playlist_ID = %s;"
     playlistLength = cursor.execute(command, val)
     cursor.reset()
     return playlistLength
   
   def getPlaylistIDFromDB(name, id):
     val = (name, id)
-    command = "SELECT Name FROM Playlist WHERE Name = '%s' AND user_ID = '%s';"
+    command = "SELECT Name FROM Playlist WHERE Name = %s AND user_ID = %s;"
     playlist_ID = cursor.execute(command,val)
     cursor.reset()
     return playlist_ID
   
   def newPlaylistLength(length,id):
     val = (length, id)
-    command = "UPDATE Playlist SET Length = '%s' WHERE playlist_ID = '%s';"
+    command = "UPDATE Playlist SET Length = %s WHERE playlist_ID = %s;"
     cursor.execute(command,val)
     mydb.commit()
     cursor.reset()
   
   def getAccountNameFromDB(name, id):
     val = (name, id)
-    command = "SELECT Username FROM User WHERE Username = '%s';"
+    command = "SELECT Username FROM User WHERE Username = %s;"
     accountName = cursor.execute(command, val)
     cursor.reset()
     return accountName
 
   def getAccountIDFromDB(name):
     val = (name)
-    command = "SELECT user_ID FROM User WHERE Username = '%s';"
+    command = "SELECT user_ID FROM User WHERE Username = %s;"
     accountID = cursor.execute(command, val)
     cursor.reset()
     return accountID
   
   def checkLoginInDB(username, password):
     val = (username, password)
-    command = "SELECT Username, Password FROM user WHERE Username = '%s' AND Password = '%s';"
-    info = cursor.execute(command, val)
-    cursor.reset()
-    return info
+    command = "SELECT Username, Password FROM User WHERE Username = %s AND Password = %s;"
+    cursor.execute(command, val)
+    result = cursor.fetchone()  
+    return result
+    
 
   def getFriendRequestFromDB(username):
-    command = "SELECT friend_ID FROM FriendRequest WHERE user_ID = '%s';"
+    command = "SELECT friend_ID FROM FriendRequest WHERE user_ID = %s;"
     requestList = cursor.execute(command, username.getAccountIDFromDB)
     cursor.reset()
     return requestList
 
   def getFriendsFromDB(self):
-    command = "SELECT friend_ID FROM Friends WHERE user_ID = '%s';"
+    command = "SELECT friend_ID FROM Friends WHERE user_ID = %s;"
     friendList = cursor.execute(command , self.getAccountIDFromDB)
     cursor.reset()
     return friendList
   
   def getSongsFromPlaylist(self, name, id):
     val = (self.getPlaylistIDFromDB(name, id))
-    command = "SELECT song_ID FROM Playlist_songs WHERE playlist_ID = '%s';"
+    command = "SELECT song_ID FROM Playlist_songs WHERE playlist_ID = %s;"
     playlist_id = cursor.execute(command, val)
     cursor.reset()
     return playlist_id
@@ -477,7 +508,10 @@ class Login(tk.Tk):
         login_password_entry.pack()
 
         #command used to call functions within the program
-        login_button = tk.Button(self.login_frame, text = "Login", command =lambda:[ self.to_mainMenu, Account.checkLogin(login_username_entry.get(), login_password_entry.get())])
+        login_button = tk.Button(self.login_frame, text = "Login", command = lambda:Account.checkLogin(self, login_username_entry.get(), login_password_entry.get()))
+        
+
+        
         login_button.pack()
 
         register_label = tk.Label(self.login_frame, text = "Don't have an account?")
@@ -510,7 +544,10 @@ class Login(tk.Tk):
         password_entry2 = tk.Entry(self.register_frame, show ="*")
         password_entry2.pack()
 
-        register_button = tk.Button(self.register_frame, text = "Register", command = lambda:[self.to_login, Account.addAccount(username_entry.get(), password_entry.get(), password_entry2.get())])
+        register_button = tk.Button(
+           self.register_frame, text = "Register", 
+           command = lambda:(Account.addAccount(username_entry.get(), password_entry.get(), password_entry2.get()), self.to_login())
+        )
         register_button.pack()
 
         self.login_frame.pack()
@@ -531,13 +568,6 @@ class Login(tk.Tk):
         self.register_frame.forget()
         self.title("Login Screen")
         self.login_frame.pack()
-
-
-
-
-
-
-
 
 class MainMenu(tk.Tk):
     # *************** Main Menu **************************
@@ -831,5 +861,6 @@ class Search(Tk):
             playSong(songs[selected[0]][0])
 
 if __name__ == '__main__':
+    print("Hello")
     app = Login()
     app.mainloop()
