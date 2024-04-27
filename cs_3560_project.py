@@ -38,7 +38,6 @@ mydb = mysql.connector.connect(
   host = "DESKTOP-1HPMV6C",
   user = "root",
   database = "playlist",
-   
 ) 
 cursor = mydb.cursor()
 '''
@@ -114,6 +113,9 @@ class Account:
   def getPassword(self):
     return self._password
   
+  def getAccountID(self):
+    return self._account_ID
+  
   def playlists(self):
     val = self._account_ID
     command = ("SELECT playlist_ID FROM Playlist WHERE user_ID = '%s';")
@@ -146,6 +148,8 @@ class Account:
   def checkLogin(window, username, password):
       if ((username, password) == DataBase.checkLoginInDB(username, password)):
         print ('success')
+        Account._account_ID = (DataBase.getAccountIDFromDB(username))
+        print(Account._account_ID)
         window.to_mainMenu()
       else:
         print('try again')
@@ -274,7 +278,7 @@ class MusicPlaylist:
   
   # Sends playlist data to playlist table in Database 
   def sendToDB(name): 
-    DataBase.addPlaylistsToDB(name, 0, 0, 0, 0)
+    DataBase.addPlaylistsToDB(name, 0, 0, Account.getAccountID)
 
   def getFromDB(self,name, user_id):
     self._playlist_name = DataBase.getPlaylistNameFromDB(name, user_id)
@@ -304,9 +308,9 @@ class DataBase:
     cursor.reset()
 
   # Store list of all public playlists ***
-  def addPlaylistsToDB(name, length, duration, playlist_id, user_id):
-    addPlaylist = "INSERT INTO playlist (Name, Length, Duration, playlist_ID, user_ID) VALUES (%s, %s, %s, %s, %s)"
-    playlist = (name, length, duration, playlist_id, user_id)
+  def addPlaylistsToDB(name):
+    addPlaylist = "INSERT INTO playlist (Name, user_ID) VALUES (%s, %s)"
+    playlist = (name, Account.getAccountID)
     cursor.execute(addPlaylist, playlist)
     mydb.commit()
     cursor.reset()
@@ -412,9 +416,10 @@ class DataBase:
     return accountName
 
   def getAccountIDFromDB(name):
-    val = (name)
+    val = (name, )
     command = "SELECT user_ID FROM User WHERE Username = %s;"
-    accountID = cursor.execute(command, val)
+    cursor.execute(command, val)
+    accountID = cursor.fetchone()
     cursor.reset()
     return accountID
   
@@ -646,7 +651,7 @@ class MainMenu(tk.Tk):
         entry = tk.Entry(self.create_frame)
         entry.pack()
         # Create a confirmation button
-        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [self.to_playlist(entry.get()), MusicPlaylist.sendToDB(entry.get())])
+        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [self.to_playlist(entry.get()), DataBase.addPlaylistsToDB(entry.get())])
         confirm_button.pack()
 
         # Create a cancel button
