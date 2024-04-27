@@ -39,6 +39,7 @@ mydb = mysql.connector.connect(
   user = "root",
   database = "playlist",
 ) 
+
 cursor = mydb.cursor()
 
 
@@ -118,7 +119,7 @@ class Account:
   
   def playlists(self):
     val = self._account_ID
-    command = ("SELECT playlist_ID FROM Playlist WHERE user_ID = '%s';")
+    command = ("SELECT playlist_ID FROM Playlist WHERE user_ID = %s;")
     command.execute(command, val)
     playlists = cursor.fetchall()
     return playlists 
@@ -150,7 +151,7 @@ class Account:
         print ('success')
         Account._account_ID = (DataBase.getAccountIDFromDB(username))
         print(Account._account_ID)
-        window.to_mainMenu()
+        window.to_mainMenu(Account._account_ID)
       else:
         print('try again')
         
@@ -167,6 +168,7 @@ class MusicPlaylist:
     self._current_song = None
     self._playing = False
     self._playlist_ID = 0
+    self._user_ID = 0
 
   @property
   def songs(self):
@@ -277,8 +279,8 @@ class MusicPlaylist:
     return None
   
   # Sends playlist data to playlist table in Database 
-  def sendToDB(name): 
-    DataBase.addPlaylistsToDB(name, 0, 0, Account.getAccountID)
+  def sendToDB(name, user_ID): 
+    DataBase.addPlaylistsToDB(name, user_ID)
 
   def getFromDB(self,name, user_id):
     self._playlist_name = DataBase.getPlaylistNameFromDB(name, user_id)
@@ -308,9 +310,9 @@ class DataBase:
     cursor.reset()
 
   # Store list of all public playlists ***
-  def addPlaylistsToDB(name):
+  def addPlaylistsToDB(name, user_ID):
     addPlaylist = "INSERT INTO playlist (Name, user_ID) VALUES (%s, %s)"
-    playlist = (name, Account.getAccountID)
+    playlist = (name, user_ID)
     cursor.execute(addPlaylist, playlist)
     mydb.commit()
     cursor.reset()
@@ -419,7 +421,7 @@ class DataBase:
     val = (name, )
     command = "SELECT user_ID FROM User WHERE Username = %s;"
     cursor.execute(command, val)
-    accountID = cursor.fetchone()
+    accountID = cursor.fetchone()[0]
     cursor.reset()
     return accountID
   
@@ -558,9 +560,10 @@ class Login(tk.Tk):
         self.login_frame.pack()
 
 # --------------------------------Login Screen Functions ---------------------------------------------------
-    def to_mainMenu(self):
+    def to_mainMenu(self, user_ID):
         self.withdraw()
-        self.main_menu = MainMenu()
+        self._user_ID = user_ID
+        self.main_menu = MainMenu(user_ID)
 
     def to_register(self):
         #forget the current frame/screen
@@ -576,10 +579,11 @@ class Login(tk.Tk):
 
 class MainMenu(tk.Tk):
     # *************** Main Menu **************************
-    def __init__(self):
-        tk.Tk.__init__(self)
+    def __init__(self, user_ID):
+        super().__init__()
         self.title('Main Menu')
         self.geometry('1600x900')
+        self._user_ID = user_ID
 
         ######## Main Menu Frame ##########################################################################
         self.mm_frame = tk.Frame(self)
@@ -626,7 +630,7 @@ class MainMenu(tk.Tk):
         self.mainMenuLabel.pack()
 
         # Create Playlist Button
-        self.createPlaylist = tk.Button(middle_frame, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = self.create_playlist) # command = create_playlist
+        self.createPlaylist = tk.Button(middle_frame, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = lambda: self.create_playlist(self._user_ID)) # command = create_playlist
         self.createPlaylist.pack(expand = True, padx=30)
         
         # Add Friend Button
@@ -641,7 +645,7 @@ class MainMenu(tk.Tk):
 
 
 # --------------------------------Main Menu Functions ---------------------------------------------------
-    def create_playlist(self):
+    def create_playlist(self, user_ID):
         # Create a new frame in the main window
         self.create_frame = tk.Frame(self)
 
@@ -651,7 +655,9 @@ class MainMenu(tk.Tk):
         entry = tk.Entry(self.create_frame)
         entry.pack()
         # Create a confirmation button
-        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [self.to_playlist(entry.get()), DataBase.addPlaylistsToDB(entry.get())])
+        #Account.checkLogin(self, login_username_entry.get(), login_password_entry.get())
+        
+        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [MusicPlaylist.sendToDB(entry.get(), user_ID), self.to_playlist(entry.get())])
         confirm_button.pack()
 
         # Create a cancel button
@@ -826,6 +832,7 @@ class YourPlaylist(tk.Toplevel):
 
     def to_search(self):
         self.search = Search()
+    
 
 
 
