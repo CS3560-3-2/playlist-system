@@ -33,14 +33,14 @@ from spotipy.oauth2 import SpotifyOAuth
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
-
+'''
 mydb = mysql.connector.connect(
   host = "DESKTOP-1HPMV6C",
   user = "root",
   database = "playlist",
 ) 
 cursor = mydb.cursor()
-
+'''
 
 class Song:
   def __init__(self, name, artist, duration, song_id): #genre used for recommendations
@@ -214,8 +214,8 @@ class MusicPlaylist:
     new_song = Song(song[1], song[2], song[3], song[0])
     self._songs.append(new_song)
     self._length = self._length + 1
-    self._duration = self._duration + song[3]
-    DataBase.addSongsToDB(song[1], song[2], song[3], song[0])
+    self._duration = int(self._duration) + int(song[3])
+    #DataBase.addSongsToDB(song[1], song[2], song[3], song[0])
 
   #calls spotify api to search by name
   def search_song(self, name):
@@ -288,7 +288,7 @@ class MusicPlaylist:
 
 
 
-
+'''
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -453,7 +453,7 @@ class DataBase:
 
 
    
-""" if __name__ == "__main__":
+if __name__ == "__main__":
  >>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
   #TESTING PLAYLIST METHODS
 
@@ -485,7 +485,7 @@ class DataBase:
 
   my_pl.display_songs()
 
- """
+ 
 
 class Login(tk.Tk):
     def __init__(self):
@@ -869,3 +869,5 @@ if __name__ == '__main__':
     print("Hello")
     app = Login()
     app.mainloop()
+
+'''
