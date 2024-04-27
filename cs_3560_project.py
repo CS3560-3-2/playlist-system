@@ -16,7 +16,7 @@ from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
 
 mydb = mysql.connector.connect(
-    host = "DESKTOP-1HPMV6C",
+    host = "DESKTOP-3PMD8A2",
     user = "root",
     database = "playlist",
 ) 
