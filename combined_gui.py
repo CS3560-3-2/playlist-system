@@ -373,21 +373,21 @@ class Search(Tk):
         result_list.bind("<<ListboxSelect>>", play_selected)
 
 # --------------------------------Main Menu Functions ---------------------------------------------------
-    def update(data):
-        result_list.delete(0, END)
+        def update(data):
+            result_list.delete(0, END)
 
-        for item in data:
-            result_list.insert(END, (item[2] + " - " + item[1]))
+            for item in data:
+                result_list.insert(END, (item[2] + " - " + item[1]))
 
-    def check(e):
-        typed = search_bar.get()
-        update(getSong(typed))
+        def check(e):
+            typed = search_bar.get()
+            update(getSong(typed))
 
-    def play_selected(e):
-        typed = search_bar.get()
-        songs = getSong(typed)
-        selected = result_list.curselection()
-        playSong(songs[selected[0]][0])
+        def play_selected(e):
+            typed = search_bar.get()
+            songs = getSong(typed)
+            selected = result_list.curselection()
+            playSong(songs[selected[0]][0])
 
 
 if __name__ == '__main__':
