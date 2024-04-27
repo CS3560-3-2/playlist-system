@@ -326,6 +326,7 @@ class YourPlaylist(tk.Toplevel):
 
         self.playlist_frame.pack(fill='both', expand = True)
 
+# --------------------------------Playlist Functions ---------------------------------------------------
     def item_select(self, _):
         print(self.table.selection())
         for i in self.table.selection():
@@ -372,7 +373,7 @@ class Search(Tk):
         search_bar.bind("<Return>", check)
         result_list.bind("<<ListboxSelect>>", play_selected)
 
-# --------------------------------Main Menu Functions ---------------------------------------------------
+# --------------------------------Search Screen Functions ---------------------------------------------------
         def update(data):
             result_list.delete(0, END)
 
