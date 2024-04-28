@@ -36,8 +36,8 @@ from spotipy.oauth2 import SpotifyOAuth
 
 
 mydb = mysql.connector.connect(
-  host = "DESKTOP-1HPMV6C",
-  #host = 'localhost',
+  #host = "DESKTOP-1HPMV6C",
+  host = 'localhost',
   user = "root",
   database = "playlist",
 ) 
@@ -99,6 +99,7 @@ class Account:
     if username: # If username exists in system
       # -> Send accept_fr to other 
       return None
+     
 
   # Responding to a friend request ***
   def accept_fr():
@@ -325,6 +326,14 @@ class DataBase:
     mydb.commit()
     cursor.reset()
 
+  def sendFollowFromDB(userID, followID):
+     val = (userID, followID)
+     command = "INSERT INTO Friends (user_ID, friend_ID) VALUES (%s, %s)"
+     cursor.execute(command, val)
+     mydb.commit()
+     cursor.reset()
+
+
   # Adds freinds from friend Request Table to Friends
   def addFriendFromDB(usernameOne, usernameTwo, acceptance):
     val = (usernameOne.getAccountIDFromDB, usernameTwo.getAccountIDFromDB)
@@ -419,9 +428,10 @@ class DataBase:
   def getAccountNameFromDB(name):
     val = (name, )
     command = "SELECT Username FROM User WHERE Username = %s;"
-    accountName = cursor.execute(command, val)
+    cursor.execute(command, val)
+    account_name = cursor.fetchone()
     cursor.reset()
-    return accountName
+    return account_name[0] if account_name else None
 
   def getAccountIDFromDB(name):
     val = (name, )
@@ -676,7 +686,7 @@ class MainMenu(tk.Tk):
         self.createPlaylist.pack(expand = True, padx=30)
         
         # Add Friend Button
-        self.addFriend = tk.Button(middle_frame, text='Add Friend', font = 'Arial 14', height=10, width=20, command = self.add_friend) # command = add_friend
+        self.addFriend = tk.Button(middle_frame, text='Follow an Account', font = 'Arial 14', height=10, width=20, command = self.add_follow) # command = add_friend
         self.addFriend.pack(expand = True, padx=30)
 
         # Go to Search Screen Button
@@ -743,6 +753,47 @@ class MainMenu(tk.Tk):
         self.search = Search()
 
 
+#Follow an account
+    def add_follow(self):
+     # Create a new window
+        window = tk.Toplevel()
+        window.geometry('500x300')
+        # Create a label and an entry widget
+        label = tk.Label(window, text="Enter username:")
+        label.pack()
+        entry = tk.Entry(window)
+        entry.pack()
+
+        # Create a confirmation button
+        confirm_button = tk.Button(window, text="Follow Account", command=lambda: self.send_follow(entry.get(), self._user_ID))
+        confirm_button.pack()
+
+        # Create a cancel button
+        cancel_button = tk.Button(window, text="Cancel", command=window.destroy)
+        cancel_button.pack()
+
+        # Check for user
+    def check_user(username, user_ID):
+        if username == DataBase.getAccountNameFromDB(username):
+            # Send a friend request to the user
+            user_ID
+        else:
+            # Print an error message
+            print(f"User not found: {username}")
+
+    # Send Friend Request        
+    def send_follow(self, username, user_id):
+        if DataBase.getAccountNameFromDB(username) is not None :
+        # Send a friend request to the user
+          followID = DataBase.getAccountIDFromDB(username)
+          DataBase.sendFollowFromDB(user_id, followID)
+          print(f"Now following {username}")
+        else:
+            print(f"User not found: {username}")
+
+
+
+'''
 ############################################################################
 # Test for friend request function
     user_data = {}
@@ -776,8 +827,8 @@ class MainMenu(tk.Tk):
             print(f"User not found: {username}")
 
     # Send Friend Request        
-    def send_fr(username, user_id):
-        if DataBase.getAccountNameFromDB(username) != None :
+    def send_fr(self, username, user_id):
+        if DataBase.getAccountNameFromDB(username) is not None :
         # Send a friend request to the user
             DataBase.sendFriendRequestFromDB(user_id, username)
             print(f"Friend request sent to {username}")
@@ -810,7 +861,7 @@ class MainMenu(tk.Tk):
             user_data[self.username]['friend_requests'].remove(requester)
             # Decline Message
             print(f"Friend request rejected from {requester}")
-            
+'''            
 
 
               
