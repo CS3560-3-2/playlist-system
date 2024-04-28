@@ -457,13 +457,12 @@ class DataBase:
 
    
 if __name__ == "__main__":
- >>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
+#>>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
   #TESTING PLAYLIST METHODS
 
   user_1 = Account("matt", "123")
   print("hashed pw: " + user_1.getPassword())
   my_pl = MusicPlaylist("Playlist 1")
-
   search = input("What song would you like to add to the playlist? ")
   query = my_pl.search_song(search)
   #returns list of tuples containing the top 10 search results for the given song name
@@ -901,4 +900,3 @@ if __name__ == '__main__':
     app = Login()
     app.mainloop()
 
-'''
