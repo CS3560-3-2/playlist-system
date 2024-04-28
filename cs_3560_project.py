@@ -371,9 +371,10 @@ class DataBase:
     cursor.reset()
     return songDuration
   
-  def getSongID(name):
-    command = "SELECT song_ID FROM Song WHERE Name = %s;"
-    cursor.execute(command, name)
+  def getSongID(id):
+    val = (id, )
+    command = "SELECT song_ID FROM Song WHERE song_ID = %s;"
+    cursor.execute(command, val)
     song_ID = cursor.fetchone()
     cursor.reset()
     return song_ID
@@ -943,8 +944,11 @@ class Search(tk.Tk):
                 print(songs[selected[0]][0])
                 #self._playlist.add_song(new_song)
                 #self._playlist.display_songs()
-                DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
-                DataBase.addToPlaylist(playlistID, songs[selected[0]][0])
+                if (DataBase.getSongID(new_song[0]) == new_song[0]):
+                  DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
+                  DataBase.addToPlaylist(playlistID, new_song[0])
+                else:
+                   DataBase.addToPlaylist(playlistID, new_song[0])
                 
                 #self._playlist.table.insert('', 'end', values=(new_song[1], new_song[2], new_song[3]))
             # Add song to playlist
