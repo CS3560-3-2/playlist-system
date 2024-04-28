@@ -43,7 +43,6 @@ mydb = mysql.connector.connect(
 
 cursor = mydb.cursor()
 
-
 class Song:
   def __init__(self, name, artist, duration, song_id): #genre used for recommendations
     self._song_id = song_id
