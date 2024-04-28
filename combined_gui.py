@@ -2,13 +2,12 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
 from tkinter import ttk
-from api import getSong, playSong
+from api import getSong, playSong, ms_to_mins_secs, pauseSong
 from dotenv import load_dotenv
 import os
 import spotipy
 from spotipy.client import Spotify
 from spotipy.oauth2 import SpotifyOAuth
-from cs_3560_project import Song, MusicPlaylist
 
 # *************** Login Screen **************************
 class Login(tk.Tk):
@@ -158,10 +157,6 @@ class MainMenu(tk.Tk):
         self.addFriend = tk.Button(middle_frame, text='Add Friend', font = 'Arial 14', height=10, width=20, command = self.add_friend) # command = add_friend
         self.addFriend.pack(expand = True, padx=30)
 
-        # Go to Search Screen Button
-        self.SearchButton = tk.Button(middle_frame, text='Search for Playlists', font = 'Arial 14', height=12, width=20, command=self.to_Search_Screen) # command = to_Search_Screen
-        self.SearchButton.pack(expand = True, padx=30)
-
         self.mm_frame.pack(fill='both')
 
 
@@ -202,7 +197,7 @@ class MainMenu(tk.Tk):
             label.pack()
         else:
             my_playlist = MusicPlaylist(entry)
-            self.new_playlist = YourPlaylist(self, entry, my_playlist)
+            self.new_playlist = YourPlaylist(self, my_playlist)
             self.playlist.insert(tk.END, entry)
 
     # Return to login
@@ -210,9 +205,6 @@ class MainMenu(tk.Tk):
         self.withdraw()
         self.login = Login()
 
-    # Go to search
-    def to_Search_Screen(self):
-        self.search = Search()
 
 
 ############################################################################
@@ -288,16 +280,16 @@ class MainMenu(tk.Tk):
               
 # *************** Playlist Class **************************
 class YourPlaylist(tk.Toplevel):
-    def __init__(self, master, playlist, name = None):
+    def __init__(self, master, name):
         tk.Toplevel.__init__(self, master)
         self.name = name
         self.title(name)
         self.geometry('1600x900')
+        self.songs = []
         label = tk.Label(self, text=f"{self.name}")
         label.pack()
         ######## Playlist Frame ##########################################################################
         self.playlist_frame = tk.Frame(self)
-        self._playlist = playlist
 
         # Display Headings (Title/Artist/Duration Headings)
         self.table = ttk.Treeview(self.playlist_frame, columns=('title', 'artist', 'duration'), show='headings')
@@ -327,67 +319,254 @@ class YourPlaylist(tk.Toplevel):
         print(self.table.selection())
         for i in self.table.selection():
             print(self.table.item(i)['values'])
+    
+    # Add Song
+    def add_songs(self, song):
+       self.table.insert('', 'end', values=song)
 
+    # Delete Song
     def delete_song(self):
         print('Song has been removed')
         for i in self.table.selection():
             self.table.delete(i)
 
+    # Play First Song
     def play(self):
-        MusicPlaylist(self._playlist).play(0)
+        MusicPlaylist(self.name).play(0)
 
     def update(self):
         for song in MusicPlaylist(self._playlist).songs:
             self.table.insert(Song(song))
-
+    
+    # Go to Search Screen
     def to_search(self):
-        self.search = Search(self._playlist)
+        self.withdraw()
+        self.search = Search(self.name)
+
 
 
 
 class Search(Tk):
-    # *************** Search Screen **************************
     def __init__(self, playlist):
         tk.Tk.__init__(self)
         self.title('Search Screen')
         self.geometry("1600x900")
-        self._playlist = MusicPlaylist(playlist)
-        search_label = Label(self, text="Search for music.")
+        self._playlist = playlist
+
+        self.search_frame = tk.Frame(self)
+        self.search_frame.pack()
+
+        search_label = Label(self.search_frame, text="Search for music.")
         search_label.pack()
 
-        search_bar = Entry(self)
+        search_bar = Entry(self.search_frame)
         search_bar.pack()
 
-        result_list = Listbox(self)
+        result_list = Listbox(self.search_frame)
         result_list.pack()
 
-        # --------------------------------Main Menu Functions ---------------------------------------------------
+        playlist_button = tk.Button(self.search_frame, text='Return to Playlist', command=lambda: self.to_playlist(playlist)) # command = to_playlist
+        playlist_button.pack(side='bottom')
+
+        # --------------------------------Search Screen Functions ---------------------------------------------------
         def update(data):
             result_list.delete(0, END)
 
             for item in data:
                 result_list.insert(END, (item[2] + " - " + item[1]))
-
+    
         def check(e):
             typed = search_bar.get()
             update(getSong(typed))
 
         def add_selected(e):
             typed = search_bar.get()
-            #returns list of songs
+            # returns list of songs
             songs = getSong(typed)
             selected = result_list.curselection()
+
+            # Print Song ID, Song Name, Song Artist, and Song Duration (in milliseconds)
             new_song = (songs[selected[0]][0], songs[selected[0]][1], songs[selected[0]][2], songs[selected[0]][3])
             print(new_song)
             self._playlist.add_song(new_song)
             self._playlist.display_songs()
-            print(self._playlist.songs)
+                
+                # Add song to playlist
+
             #playSong() takes the id of the selected song
             #playSong(songs[selected[0]][0])
-        
+
         #on event, run the specified function
         search_bar.bind("<Return>", check)
         result_list.bind("<<ListboxSelect>>", add_selected)
+
+    def to_playlist(self, playlist):
+        self.withdraw()
+        self.playlist = YourPlaylist(self, playlist)
+
+
+        
+
+
+
+class Song:
+  def __init__(self, name, artist, duration, song_id): #genre used for recommendations
+    self._song_id = song_id
+    self._song_name = name
+    self._song_artist = artist
+    self._song_duration = duration
+  
+  @property
+  def song_id(self):
+    return self._song_id
+  
+  @property
+  def song_name(self):
+    return self._song_name
+  
+  @property
+  def song_artist(self):
+    return self._song_artist
+  
+  @property
+  def song_duration(self):
+    return ms_to_mins_secs(int(self._song_duration))
+  
+  def __str__(self):
+    return self._song_name
+
+
+
+
+# Create subclass of music playlist for an account
+class MusicPlaylist:
+  # Method to create a playlist ***
+  def __init__(self, playlist_name):
+    self._songs = []
+    self._playlist_name = playlist_name
+    self._length = 0
+    self._duration = 0
+    self._current_song = None
+    self._playing = False
+    self._playlist_ID = 0
+
+  @property
+  def songs(self):
+    return self._songs
+
+  @property
+  def playlist_name(self):
+    return self._playlist_name
+    
+  @playlist_name.setter
+  def playlist_name(self, value):
+    self._playlist_name = value
+
+  @property
+  def length(self):
+    return self._length
+    
+  @length.setter
+  def length(self, value):
+    self._length = value
+
+  @property
+  def duration(self):
+    return ms_to_mins_secs(self._duration)
+  
+  @property
+  def current_song(self):
+    return self._current_song
+    
+  @current_song.setter
+  def current_song(self, value):
+    self._current_song = value
+
+  @property
+  def playing(self):
+    return self._playing
+  
+  @playing.setter
+  def playing(self, value):
+    self._playing = value
+
+  #takes a tuple containing song name, artist, duration, and id as input
+  #Sends song data to song table in database
+  def add_song(self, song):
+    new_song = Song(song[1], song[2], song[3], song[0])
+    self._songs.append(new_song)
+    self._length = self._length + 1
+    self._duration = self._duration + song[3]
+    #DataBase.addSongsToDB(song[1], song[2], song[3], song[0])
+
+  #calls spotify api to search by name
+  def search_song(self, name):
+    search = getSong(name)
+    return search
+
+  #print elements in song list
+  def display_songs(self):
+    for song in self.songs:
+      print(song)
+
+  #returns a song object
+  def get_song(self, index):
+    return self.songs[int(index)]
+  
+  # Play a song based off it's index in the playlist***
+  def play(self, playlist_index):
+    #now_playing equals the Song object at the provided index
+    now_playing = self.get_song(playlist_index)
+
+    #current_song is set equal to the playlist of the currently playing song
+    self.current_song = playlist_index
+    self.playing = True
+    playSong(now_playing.song_id)
+    return None
+
+  # Pause a song ***
+  def pause(self):
+    # Insert media player to pause a song
+    pauseSong()
+    return None
+
+  # Skip a song ***
+  def skip(self):
+    #if on the last song of the playlist, loop back to the first
+    if(int(self.current_song) == int(self.length - 1)):
+      self.current_song = 0
+    else:
+      #set current song to next song and play it
+      self.current_song = int(self.current_song) + 1
+    self.play(self.current_song)
+    return None
+
+  # Shuffle playlist ***
+  def shuffle(self):
+    random.shuffle(self.songs)
+
+  # Automatically play the next song (temporal event) ***
+  def play_next(pl):
+    # When song finishes, play next song in queue
+
+    #have function sleep for amount of time corresponding to current song duration?
+    #take into account song pauses
+    return None
+
+  # Share a playlist via link ***
+  def share_pl(pl):
+  # Update playlist record
+    return None
+  
+  # Sends playlist data to playlist table in Database 
+  def sendToDB(name): 
+    DataBase.addPlaylistsToDB(name, 0, 0, 0, 0)
+
+  def getFromDB(self,name, user_id):
+    self._playlist_name = DataBase.getPlaylistNameFromDB(name, user_id)
+    self._length = DataBase.getPlaylistLengthFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
+    self._duration = DataBase.getPlaylistDurationFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
+    self._playlist_ID = DataBase.getPlaylistIDFromDB(name, user_id)
 
 
 if __name__ == '__main__':
