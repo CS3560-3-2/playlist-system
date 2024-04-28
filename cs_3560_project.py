@@ -20,6 +20,7 @@ import hashlib
 import random
 from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
+from functools import partial
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -283,7 +284,7 @@ class MusicPlaylist:
     DataBase.addPlaylistsToDB(name, user_ID)
 
   def getFromDB(self,name, user_id):
-    self._playlist_name = DataBase.getPlaylistNameFromDB(name, user_id)
+    self._playlist_name = DataBase.getPlaylistNameFromDB(user_id)
     self._length = DataBase.getPlaylistLengthFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
     self._duration = DataBase.getPlaylistDurationFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
     self._playlist_ID = DataBase.getPlaylistIDFromDB(name, user_id)
@@ -375,10 +376,11 @@ class DataBase:
     cursor.reset()
     return song_ID
   
-  def getPlaylistNameFromDB(name, id):
-    val = (name, id)
-    command = "SELECT Name FROM Playlist WHERE Name = %s AND user_ID = %s;"
-    playlistName = cursor.execute(command, val)
+  def getPlaylistNamesFromDB(user_id):
+    val = (user_id, )
+    command = "SELECT Name FROM Playlist WHERE user_ID = %s;"
+    cursor.execute(command, val)
+    playlistName = cursor.fetchall()
     cursor.reset()
     return playlistName
   
@@ -592,6 +594,11 @@ class MainMenu(tk.Tk):
         left_frame = tk.Frame(self.mm_frame)
         # Pack the frame to the left side of the main frame
         left_frame.pack(side='left', fill='both')
+
+        #on login, iterate through database for a user's friends, then create buttons for them
+       # def create_friend_button(button_id):
+        #  new_button = tk.Button(MainMenu, text=f"Button {button_id}", command=lambda: button_click(button_id))
+        #  new_button.pack()
         
 
         # "Your Playlists Title + List of your Playlists"
@@ -600,6 +607,18 @@ class MainMenu(tk.Tk):
 
         self.playlist = tk.Listbox(left_frame, width = 50, height = 30)
         self.playlist.pack(side='top', fill='both')
+
+         #on login, iterate through database for a user's playlists, then create buttons for them
+        # Create a cursor object to execute SQL queries
+
+        usersPlaylists = DataBase.getPlaylistNamesFromDB(user_ID)
+
+        #buttons need to be in left frame
+        for x in range(len(usersPlaylists)-1):
+          playlistName = usersPlaylists[x+1]
+          new_label = tk.Label(left_frame, text=playlistName)
+          new_label.bind("<Button-1>", lambda event, uid = user_ID: (self.open_playlist(uid)))
+          new_label.pack()
 
         # Back button
         self.back_button = tk.Button(left_frame, text = 'Return to Login', command = self.to_login)
@@ -673,7 +692,7 @@ class MainMenu(tk.Tk):
         self.create_frame.forget()
         self.mm_frame.pack(fill='both', expand=True)
 
-    # Go to Playlist
+    # Go to Playlist/create playlist
     def to_playlist(self, entry):
         if (entry == ""): # Error message when playlist name is empty
             error = tk.Toplevel(self)
@@ -684,6 +703,12 @@ class MainMenu(tk.Tk):
         else:
             self.new_playlist = YourPlaylist(self, entry)
             self.playlist.insert(tk.END, entry)
+
+    def open_playlist(self, playlist_ID):
+       self.new_playlist = YourPlaylist(self, playlist_ID)
+       #YourPlaylist should retrive data from database using Database.getxxx(playlist_ID) to populate window
+       #atm buttons open a window titled playlist_ID, title should be playlist name
+       return 0
 
     # Return to login
     def to_login(self):
