@@ -34,7 +34,7 @@ from spotipy.oauth2 import SpotifyOAuth
 
 # Note: methods are not all compilable, *** is used to note the methods/use cases that need work
 
-'''
+
 mydb = mysql.connector.connect(
   host = "DESKTOP-1HPMV6C",
   user = "root",
@@ -290,7 +290,7 @@ class MusicPlaylist:
 
 
 
-'''
+
 #Methods that send songs to the database 
 class DataBase:
   # Method that sends songs to song table in database
@@ -455,15 +455,13 @@ class DataBase:
   
 
 
-   
+'''   
 if __name__ == "__main__":
- >>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
+#>>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
   #TESTING PLAYLIST METHODS
-
   user_1 = Account("matt", "123")
   print("hashed pw: " + user_1.getPassword())
   my_pl = MusicPlaylist("Playlist 1")
-
   search = input("What song would you like to add to the playlist? ")
   query = my_pl.search_song(search)
   #returns list of tuples containing the top 10 search results for the given song name
@@ -487,7 +485,7 @@ if __name__ == "__main__":
   my_pl.shuffle()
 
   my_pl.display_songs()
-
+'''
  
 
 class Login(tk.Tk):
@@ -901,4 +899,3 @@ if __name__ == '__main__':
     app = Login()
     app.mainloop()
 
-'''
