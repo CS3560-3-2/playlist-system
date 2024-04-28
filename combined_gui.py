@@ -8,6 +8,7 @@ import os
 import spotipy
 from spotipy.client import Spotify
 from spotipy.oauth2 import SpotifyOAuth
+from cs_3560_project import Song, MusicPlaylist
 
 # *************** Login Screen **************************
 class Login(tk.Tk):
@@ -200,7 +201,8 @@ class MainMenu(tk.Tk):
             label = tk.Label(error, text="Please give your playlist a name")
             label.pack()
         else:
-            self.new_playlist = YourPlaylist(self, entry)
+            my_playlist = MusicPlaylist(entry)
+            self.new_playlist = YourPlaylist(self, entry, my_playlist)
             self.playlist.insert(tk.END, entry)
 
     # Return to login
@@ -286,7 +288,7 @@ class MainMenu(tk.Tk):
               
 # *************** Playlist Class **************************
 class YourPlaylist(tk.Toplevel):
-    def __init__(self, master, name = None):
+    def __init__(self, master, playlist, name = None):
         tk.Toplevel.__init__(self, master)
         self.name = name
         self.title(name)
@@ -295,6 +297,7 @@ class YourPlaylist(tk.Toplevel):
         label.pack()
         ######## Playlist Frame ##########################################################################
         self.playlist_frame = tk.Frame(self)
+        self._playlist = playlist
 
         # Display Headings (Title/Artist/Duration Headings)
         self.table = ttk.Treeview(self.playlist_frame, columns=('title', 'artist', 'duration'), show='headings')
@@ -305,13 +308,6 @@ class YourPlaylist(tk.Toplevel):
 
         self.title_label = ttk.Label(master=self.playlist_frame, font='Arial 18')
         self.title_label.pack()
-
-        ################## Test Spotify API Here #############################
-        load_dotenv()
-        client_id = os.getenv("CLIENT_ID")
-        client_secret = os.getenv("CLIENT_SECRET")
-        redirect_uri = os.getenv("REDIRECT_URI")
-
 
         # Display Buttons at bottom
 
@@ -337,29 +333,25 @@ class YourPlaylist(tk.Toplevel):
         for i in self.table.selection():
             self.table.delete(i)
 
-    def play(self, song_uri):
-        playback_state = self.sp.current_playback()
+    def play(self):
+        MusicPlaylist(self._playlist).play(0)
 
-        # If the user is not currently playing a song, start a new playback
-        if playback_state is None or playback_state['is_playing'] is False:
-            self.sp.start_playback(uris=[song_uri])
-        # If the user is already playing a song, add the new song to the queue
-        else:
-            self.sp.add_to_queue(song_uri)
-        # Play the song
-        self.sp.next_track()
+    def update(self):
+        for song in MusicPlaylist(self._playlist).songs:
+            self.table.insert(Song(song))
 
     def to_search(self):
-        self.search = Search()
+        self.search = Search(self._playlist)
 
 
 
 class Search(Tk):
     # *************** Search Screen **************************
-    def __init__(self):
+    def __init__(self, playlist):
         tk.Tk.__init__(self)
         self.title('Search Screen')
         self.geometry("1600x900")
+        self._playlist = MusicPlaylist(playlist)
         search_label = Label(self, text="Search for music.")
         search_label.pack()
 
@@ -369,11 +361,7 @@ class Search(Tk):
         result_list = Listbox(self)
         result_list.pack()
 
-        #on event, run the specified function
-        search_bar.bind("<Return>", check)
-        result_list.bind("<<ListboxSelect>>", play_selected)
-
-# --------------------------------Search Screen Functions ---------------------------------------------------
+        # --------------------------------Main Menu Functions ---------------------------------------------------
         def update(data):
             result_list.delete(0, END)
 
@@ -384,11 +372,22 @@ class Search(Tk):
             typed = search_bar.get()
             update(getSong(typed))
 
-        def play_selected(e):
+        def add_selected(e):
             typed = search_bar.get()
+            #returns list of songs
             songs = getSong(typed)
             selected = result_list.curselection()
-            playSong(songs[selected[0]][0])
+            new_song = (songs[selected[0]][0], songs[selected[0]][1], songs[selected[0]][2], songs[selected[0]][3])
+            print(new_song)
+            self._playlist.add_song(new_song)
+            self._playlist.display_songs()
+            print(self._playlist.songs)
+            #playSong() takes the id of the selected song
+            #playSong(songs[selected[0]][0])
+        
+        #on event, run the specified function
+        search_bar.bind("<Return>", check)
+        result_list.bind("<<ListboxSelect>>", add_selected)
 
 
 if __name__ == '__main__':
