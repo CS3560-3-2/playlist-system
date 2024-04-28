@@ -20,6 +20,7 @@ import hashlib
 import random
 from api import getSong, playSong, ms_to_mins_secs, pauseSong
 
+from functools import partial
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -39,8 +40,8 @@ mydb = mysql.connector.connect(
   user = "root",
   database = "playlist",
 ) 
+
 cursor = mydb.cursor()
-'''
 
 class Song:
   def __init__(self, name, artist, duration, song_id): #genre used for recommendations
@@ -119,7 +120,7 @@ class Account:
   
   def playlists(self):
     val = self._account_ID
-    command = ("SELECT playlist_ID FROM Playlist WHERE user_ID = '%s';")
+    command = ("SELECT playlist_ID FROM Playlist WHERE user_ID = %s;")
     command.execute(command, val)
     playlists = cursor.fetchall()
     return playlists 
@@ -149,8 +150,8 @@ class Account:
   def checkLogin(window, username, password):
       if ((username, password) == DataBase.checkLoginInDB(username, password)):
         print ('success')
-        window._account_ID = (DataBase.getAccountIDFromDB(username))
-        print(window._account_ID[0])
+        Account._account_ID = (DataBase.getAccountIDFromDB(username))
+        print(Account._account_ID)
         window.to_mainMenu()
       else:
         print('try again')
@@ -168,6 +169,7 @@ class MusicPlaylist:
     self._current_song = None
     self._playing = False
     self._playlist_ID = 0
+    self._user_ID = 0
 
   @property
   def songs(self):
@@ -279,10 +281,10 @@ class MusicPlaylist:
   
   # Sends playlist data to playlist table in Database 
   def sendToDB(name): 
-    DataBase.addPlaylistsToDB(name)
+    DataBase.addPlaylistsToDB(name, 0, 0, Account.getAccountID)
 
   def getFromDB(self,name, user_id):
-    self._playlist_name = DataBase.getPlaylistNameFromDB(name, user_id)
+    self._playlist_name = DataBase.getPlaylistNameFromDB(user_id)
     self._length = DataBase.getPlaylistLengthFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
     self._duration = DataBase.getPlaylistDurationFromDB(DataBase.getPlaylistIDFromDB(name, user_id))
     self._playlist_ID = DataBase.getPlaylistIDFromDB(name, user_id)
@@ -309,9 +311,9 @@ class DataBase:
     cursor.reset()
 
   # Store list of all public playlists ***
-  def addPlaylistsToDB(name):
+  def addPlaylistsToDB(name, user_ID):
     addPlaylist = "INSERT INTO playlist (Name, user_ID) VALUES (%s, %s)"
-    playlist = (name, Account.getAccountID)
+    playlist = (name, user_ID)
     cursor.execute(addPlaylist, playlist)
     mydb.commit()
     cursor.reset()
@@ -380,8 +382,7 @@ class DataBase:
   def getPlaylistNameFromDB(name, id):
     val = (name, id)
     command = "SELECT Name FROM Playlist WHERE Name = %s AND user_ID = %s;"
-    cursor.execute(command, val)
-    playlistName = cursor.fetchone()
+    playlistName = cursor.execute(command, val)
     cursor.reset()
     return playlistName
   
@@ -426,7 +427,7 @@ class DataBase:
     val = (name, )
     command = "SELECT user_ID FROM User WHERE Username = %s;"
     cursor.execute(command, val)
-    accountID = cursor.fetchone()
+    accountID = cursor.fetchone()[0]
     cursor.reset()
     return accountID
   
@@ -464,8 +465,8 @@ class DataBase:
 
    
 if __name__ == "__main__":
- >>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
-  #TESTING PLAYLIST METHODS
+#>>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
+#TESTING PLAYLIST METHODS
 
   user_1 = Account("matt", "123")
   print("hashed pw: " + user_1.getPassword())
@@ -568,9 +569,10 @@ class Login(tk.Tk):
         self.login_frame.pack()
 
 # --------------------------------Login Screen Functions ---------------------------------------------------
-    def to_mainMenu(self):
+    def to_mainMenu(self, user_ID):
         self.withdraw()
-        self.main_menu = MainMenu()
+        self._user_ID = user_ID
+        self.main_menu = MainMenu(user_ID)
 
     def to_register(self):
         #forget the current frame/screen
@@ -586,10 +588,11 @@ class Login(tk.Tk):
 
 class MainMenu(tk.Tk):
     # *************** Main Menu **************************
-    def __init__(self):
-        tk.Tk.__init__(self)
+    def __init__(self, user_ID):
+        super().__init__()
         self.title('Main Menu')
         self.geometry('1600x900')
+        self._user_ID = user_ID
 
         ######## Main Menu Frame ##########################################################################
         self.mm_frame = tk.Frame(self)
@@ -598,6 +601,11 @@ class MainMenu(tk.Tk):
         left_frame = tk.Frame(self.mm_frame)
         # Pack the frame to the left side of the main frame
         left_frame.pack(side='left', fill='both')
+
+        #on login, iterate through database for a user's friends, then create buttons for them
+       # def create_friend_button(button_id):
+        #  new_button = tk.Button(MainMenu, text=f"Button {button_id}", command=lambda: button_click(button_id))
+        #  new_button.pack()
         
 
         # "Your Playlists Title + List of your Playlists"
@@ -606,6 +614,18 @@ class MainMenu(tk.Tk):
 
         self.playlist = tk.Listbox(left_frame, width = 50, height = 30)
         self.playlist.pack(side='top', fill='both')
+
+         #on login, iterate through database for a user's playlists, then create buttons for them
+        # Create a cursor object to execute SQL queries
+
+        usersPlaylists = DataBase.getPlaylistNamesFromDB(user_ID)
+
+        #buttons need to be in left frame
+        for x in range(len(usersPlaylists)-1):
+          playlistName = usersPlaylists[x+1]
+          new_label = tk.Label(left_frame, text=playlistName)
+          new_label.bind("<Button-1>", lambda event, uid = user_ID: (self.open_playlist(uid)))
+          new_label.pack()
 
         # Back button
         self.back_button = tk.Button(left_frame, text = 'Return to Login', command = self.to_login)
@@ -636,7 +656,7 @@ class MainMenu(tk.Tk):
         self.mainMenuLabel.pack()
 
         # Create Playlist Button
-        self.createPlaylist = tk.Button(middle_frame, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = self.create_playlist) # command = create_playlist
+        self.createPlaylist = tk.Button(middle_frame, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = lambda: self.create_playlist(self._user_ID)) # command = create_playlist
         self.createPlaylist.pack(expand = True, padx=30)
         
         # Add Friend Button
@@ -651,7 +671,7 @@ class MainMenu(tk.Tk):
 
 
 # --------------------------------Main Menu Functions ---------------------------------------------------
-    def create_playlist(self):
+    def create_playlist(self, user_ID):
         # Create a new frame in the main window
         self.create_frame = tk.Frame(self)
 
@@ -661,7 +681,7 @@ class MainMenu(tk.Tk):
         entry = tk.Entry(self.create_frame)
         entry.pack()
         # Create a confirmation button
-        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [ MusicPlaylist.sendToDB(entry.get()), self.to_playlist(entry.get())])
+        confirm_button = tk.Button(self.create_frame, text="Create Playlist", command=lambda: [self.to_playlist(entry.get()), DataBase.addPlaylistsToDB(entry.get())])
         confirm_button.pack()
 
         # Create a cancel button
@@ -677,7 +697,7 @@ class MainMenu(tk.Tk):
         self.create_frame.forget()
         self.mm_frame.pack(fill='both', expand=True)
 
-    # Go to Playlist
+    # Go to Playlist/create playlist
     def to_playlist(self, entry):
         if (entry == ""): # Error message when playlist name is empty
             error = tk.Toplevel(self)
@@ -688,6 +708,12 @@ class MainMenu(tk.Tk):
         else:
             self.new_playlist = YourPlaylist(self, entry)
             self.playlist.insert(tk.END, entry)
+
+    def open_playlist(self, playlist_ID):
+       self.new_playlist = YourPlaylist(self, playlist_ID)
+       #YourPlaylist should retrive data from database using Database.getxxx(playlist_ID) to populate window
+       #atm buttons open a window titled playlist_ID, title should be playlist name
+       return 0
 
     # Return to login
     def to_login(self):
@@ -836,6 +862,7 @@ class YourPlaylist(tk.Toplevel):
 
     def to_search(self):
         self.search = Search()
+    
 
 
 
@@ -880,4 +907,4 @@ if __name__ == '__main__':
     app = Login()
     app.mainloop()
 
-'''
+
