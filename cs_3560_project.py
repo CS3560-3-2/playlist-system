@@ -37,6 +37,7 @@ from spotipy.oauth2 import SpotifyOAuth
 
 mydb = mysql.connector.connect(
   host = "DESKTOP-1HPMV6C",
+  #host = 'localhost',
   user = "root",
   database = "playlist",
 ) 
@@ -339,8 +340,8 @@ class DataBase:
       cursor.reset()
 
   # Stores all Songs from a Playlist
-  def addToPlaylist(songName, playlistName, username):
-    val = (playlistName.getPlaylistIDFromDB(playlistName, username.getAccountIDFromDB),songName.getSongID(songName))
+  def addToPlaylist(playlistID, songID):
+    val = (playlistID, songID)
     command = "INSERT INTO Playlist_Songs (playlist_ID, song_ID) VALUES (%s, %s)"
     cursor.execute (command, val)
     mydb.commit()
@@ -451,17 +452,18 @@ class DataBase:
     cursor.reset()
     return friendList
   
-  def getSongsFromPlaylist(self, name, id):
-    val = (self.getPlaylistIDFromDB(name, id))
+  def getSongsFromPlaylist(self, playlist_id):
+    val = (playlist_id, )
     command = "SELECT song_ID FROM Playlist_songs WHERE playlist_ID = %s;"
     cursor.execute(command, val)
-    playlist_id = cursor.fetchone()
+    songIDs = cursor.fetchone()
     cursor.reset()
-    return playlist_id
+    #returns tuple with all song IDS in a playlist
+    return songIDs
   
   def getAllPlaylistsFromDB(id):
     val = (id, )
-    command = "SELECT Name FROM playlist WHERE user_ID = %s;"
+    command = "SELECT Name, playlist_ID FROM playlist WHERE user_ID = %s;"
     cursor.execute(command, val)
     allPlaylists = cursor.fetchall()
     cursor.reset()
@@ -622,14 +624,23 @@ class MainMenu(tk.Tk):
          #on login, iterate through database for a user's playlists, then create buttons for them
         # Create a cursor object to execute SQL queries
 
+        #needs to return an array of all a user's playlists
         usersPlaylists = DataBase.getAllPlaylistsFromDB(user_ID)
 
         #buttons need to be in left frame
-        for x in range(len(usersPlaylists)-1):
-          playlistName = usersPlaylists[x+1]
+        for playlist_tuple in usersPlaylists:
+          playlistName = playlist_tuple[0]  # Access the first element (Name)
+          playlist_ID = playlist_tuple[1]  # Access the second element (playlist_ID)
           new_label = tk.Label(left_frame, text=playlistName)
-          new_label.bind("<Button-1>", lambda event, uid = user_ID: (self.open_playlist(uid)))
+          new_label.bind("<Button-1>", lambda event, pid = playlist_ID: (self.open_playlist(playlistName, pid)))
           new_label.pack()
+
+        #for x in range(len(usersPlaylists)-1):
+         # playlistName = usersPlaylists[x+1]
+          #playlist_ID = usersPlaylists[]
+          #new_label = tk.Label(left_frame, text=playlistName)
+          #new_label.bind("<Button-1>", lambda event, pid = playlist_ID: (self.open_playlist(playlistName, pid)))
+          #new_label.pack()
 
         # Back button
         self.back_button = tk.Button(left_frame, text = 'Return to Login', command = self.to_login)
@@ -713,8 +724,8 @@ class MainMenu(tk.Tk):
             self.new_playlist = YourPlaylist(self, entry)
             self.playlist.insert(tk.END, entry)
 
-    def open_playlist(self, playlist_ID):
-       self.new_playlist = YourPlaylist(self, playlist_ID)
+    def open_playlist(self, playlistName, playlist_ID):
+       self.new_playlist = YourPlaylist(self, playlistName, playlist_ID)
        #YourPlaylist should retrive data from database using Database.getxxx(playlist_ID) to populate window
        #atm buttons open a window titled playlist_ID, title should be playlist name
        return 0
@@ -725,6 +736,8 @@ class MainMenu(tk.Tk):
         self.login = Login()
 
     # Go to search
+    # Search Playlist function should be different from Search Song
+    # Is this supposed to be a search for songs from the main menu function?
     def to_Search_Screen(self):
         self.search = Search()
 
@@ -802,7 +815,7 @@ class MainMenu(tk.Tk):
               
 # *************** Playlist Class **************************
 class YourPlaylist(tk.Toplevel):
-    def __init__(self, master, name):
+    def __init__(self, master, name, playlistID=None):
         tk.Toplevel.__init__(self, master)
         self.name = name
         self.title(name)
@@ -810,6 +823,7 @@ class YourPlaylist(tk.Toplevel):
         self.songs = []
         label = tk.Label(self, text=f"{self.name}")
         label.pack()
+        self.playlistID = playlistID
         ######## Playlist Frame ##########################################################################
         self.playlist_frame = tk.Frame(self)
 
@@ -827,7 +841,7 @@ class YourPlaylist(tk.Toplevel):
 
         button_frame = tk.Frame(self.playlist_frame)
         self.play_button = tk.Button(button_frame, text = 'Play', command=self.play)
-        self.search_button = tk.Button(button_frame, text = 'Search', command=self.to_search)
+        self.search_button = tk.Button(button_frame, text = 'Search', command = self.to_search)
 
         # Pack the buttons into the frame and center them
         self.play_button.pack()
@@ -835,6 +849,23 @@ class YourPlaylist(tk.Toplevel):
         button_frame.pack(fill='both', expand=False)
 
         self.playlist_frame.pack(fill='both', expand = True)
+
+        if playlistID is not None:
+          songList = DataBase.getSongsFromPlaylist(self, playlistID)
+          #print(songList)
+          #for x in range(len(songList)-1):
+           #  DataBase.addToPlaylist(playlistID, songList[x+1]) 
+
+#Playlist's songs = database.getallsongs etc
+#usersPlaylists = DataBase.getAllPlaylistsFromDB(user_ID)
+
+#iterate through result and create buttons with correct format
+         #buttons need to be in left frame
+      #  for x in range(len(usersPlaylists)-1):
+        #  playlistName = usersPlaylists[x+1]
+        #  new_label = tk.Label(left_frame, text=playlistName)
+         # new_label.bind("<Button-1>", lambda event, uid = user_ID: (self.open_playlist(playlistName, uid)))
+         # new_label.pack()
 
 # --------------------------------Playlist Functions ---------------------------------------------------
     def item_select(self, _):
@@ -862,18 +893,18 @@ class YourPlaylist(tk.Toplevel):
     
     # Go to Search Screen
     def to_search(self):
-        self.withdraw()
-        self.search = Search(self.name)
+        if self.playlistID is not None:
+          self.withdraw()
+          self.search = Search(self, self.playlistID)
 
 
-
-
-class Search(Tk):
-    def __init__(self, playlist):
-        tk.Tk.__init__(self)
+class Search(tk.Tk):
+    def __init__(self, master, playlistID):
+        super().__init__()
+        self.master = master  # Keep a reference to the parent window
         self.title('Search Screen')
         self.geometry("1600x900")
-        self._playlist = playlist
+        self._playlist = playlistID
 
         self.search_frame = tk.Frame(self)
         self.search_frame.pack()
@@ -887,7 +918,7 @@ class Search(Tk):
         result_list = Listbox(self.search_frame)
         result_list.pack()
 
-        playlist_button = tk.Button(self.search_frame, text='Return to Playlist', command=lambda: self.to_playlist(playlist)) # command = to_playlist
+        playlist_button = tk.Button(self.search_frame, text='Return to Playlist', command=lambda: self.to_playlist()) # command = to_playlist
         playlist_button.pack(side='bottom')
 
         # --------------------------------Search Screen Functions ---------------------------------------------------
@@ -908,10 +939,12 @@ class Search(Tk):
             selected = result_list.curselection()
             if selected:
                 new_song = (songs[selected[0]][0], songs[selected[0]][1], songs[selected[0]][2], songs[selected[0]][3])
-                print(new_song)
+                #print(new_song)
+                print(songs[selected[0]][0])
                 #self._playlist.add_song(new_song)
                 #self._playlist.display_songs()
                 DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
+                DataBase.addToPlaylist(playlistID, songs[selected[0]][0])
                 
                 #self._playlist.table.insert('', 'end', values=(new_song[1], new_song[2], new_song[3]))
             # Add song to playlist
@@ -923,11 +956,10 @@ class Search(Tk):
         search_bar.bind("<Return>", check)
         result_list.bind("<<ListboxSelect>>", add_selected)
 
-    def to_playlist(self, playlist):
+    def to_playlist(self):
         self.withdraw()
-        self.playlist = YourPlaylist(self, playlist)
-
-            #MusicPlaylist.add_song(selected)
+        self.master.deiconify()
+        #MusicPlaylist.add_song(selected)
 
 
 if __name__ == '__main__':
