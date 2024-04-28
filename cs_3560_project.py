@@ -317,8 +317,8 @@ class DataBase:
     cursor.reset()
 
   # Store list of friend requests in Freind request Table
-  def sendFriendRequestFromDB(usernameOne, usernameTwo):
-    val = (usernameOne.getAccountIDFromDB, usernameTwo.getAccountIDFromDB)
+  def sendFriendRequestFromDB(id, usernameTwo):
+    val = (id, DataBase.getAccountIDFromDB(usernameTwo))
     command = "INSERT INTO FriendRequest (user_ID, friend_ID) VALUES (%s, %s)"
     cursor.execute(command, val)
     mydb.commit()
@@ -414,8 +414,8 @@ class DataBase:
     mydb.commit()
     cursor.reset()
   
-  def getAccountNameFromDB(name, id):
-    val = (name, id)
+  def getAccountNameFromDB(name):
+    val = (name, )
     command = "SELECT Username FROM User WHERE Username = %s;"
     accountName = cursor.execute(command, val)
     cursor.reset()
@@ -745,7 +745,7 @@ class MainMenu(tk.Tk):
         entry.pack()
 
         # Create a confirmation button
-        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.send_fr(entry.get()))
+        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.send_fr(entry.get(), self._user_ID))
         confirm_button.pack()
 
         # Create a cancel button
@@ -753,19 +753,19 @@ class MainMenu(tk.Tk):
         cancel_button.pack()
 
     # Check for user
-    def check_user(username, requester):
-        if username in user_data:
+    def check_user(username, user_ID):
+        if username == DataBase.getAccountNameFromDB(username):
             # Send a friend request to the user
-            user_data[username]['friend_requests'].append(requester)
+            user_ID
         else:
             # Print an error message
             print(f"User not found: {username}")
 
     # Send Friend Request        
-    def send_fr(username):
-        if username in user_data:
+    def send_fr(username, user_id):
+        if DataBase.getAccountNameFromDB(username) != None :
         # Send a friend request to the user
-            check_user(username, self.username)
+            DataBase.sendFriendRequestFromDB(user_id, username)
             print(f"Friend request sent to {username}")
         else:
             print(f"User not found: {username}")
