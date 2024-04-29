@@ -36,13 +36,12 @@ from spotipy.oauth2 import SpotifyOAuth
 
 
 mydb = mysql.connector.connect(
-  #host = "DESKTOP-1HPMV6C",
-  host = 'localhost',
+  host = "localhost",
   user = "root",
-  password = 'OrangeNoodleBug2#',
+  password = "OrangeNoodleBug2#",
   database = "playlist",
+   
 ) 
-
 cursor = mydb.cursor()
 
 class Song:
@@ -100,7 +99,6 @@ class Account:
     if username: # If username exists in system
       # -> Send accept_fr to other 
       return None
-     
 
   # Responding to a friend request ***
   def accept_fr():
@@ -154,7 +152,6 @@ class Account:
       if ((username, password) == DataBase.checkLoginInDB(username, password)):
         print ('success')
         Account._account_ID = (DataBase.getAccountIDFromDB(username))
-        print(Account._account_ID)
         window.to_mainMenu(Account._account_ID)
       else:
         print('try again')
@@ -327,14 +324,6 @@ class DataBase:
     mydb.commit()
     cursor.reset()
 
-  def sendFollowFromDB(userID, followID):
-     val = (userID, followID)
-     command = "INSERT INTO Friends (user_ID, friend_ID) VALUES (%s, %s)"
-     cursor.execute(command, val)
-     mydb.commit()
-     cursor.reset()
-
-
   # Adds freinds from friend Request Table to Friends
   def addFriendFromDB(usernameOne, usernameTwo, acceptance):
     val = (usernameOne.getAccountIDFromDB, usernameTwo.getAccountIDFromDB)
@@ -358,32 +347,33 @@ class DataBase:
     cursor.reset()
 
   #All getters and setters for the DataBase
-  def getSongNameFromDB(name, id):
-    val = (name, id)
-    command = "SELECT Name FROM Song WHERE Name = %s AND song_ID = %s;"
-    songName = cursor.execute(command, val)
+  def getSongNameFromDB(id):
+    val = (id,)
+    command = "SELECT Name FROM Song WHERE song_ID = %s;"
+    cursor.execute(command, val)
+    songName = cursor.fetchone()
     cursor.reset()
     return songName
   
-  def getSongArtistFromDB(artist, id):
-    val = (artist, id)
-    command = "SELECT Artist FROM Song WHERE Artist = %s AND song_ID = %s;"
+  def getSongArtistFromDB(id):
+    val = (id,)
+    command = "SELECT Artist FROM Song WHERE song_ID = %s;"
     cursor.execute(command, val)
     songArtist = cursor.fetchone()
     cursor.reset()
     return songArtist
   
-  def getSongDurationFromDB(duration, id):
-    val = (command, id)
-    command = "SELECT Duration FROM Song WHERE Name = %s AND song_ID = %s;"
+  def getSongDurationFromDB(id):
+    val = (id,)
+    command = "SELECT Duration FROM Song WHERE song_ID = %s;"
     cursor.execute(command, val)
     songDuration = cursor.fetchone()
     cursor.reset()
     return songDuration
   
-  def getSongID(id):
-    val = (id, )
-    command = "SELECT song_ID FROM Song WHERE song_ID = %s;"
+  def getSongID(name):
+    val = (name, )
+    command = "SELECT song_ID FROM Song WHERE Name = %s;"
     cursor.execute(command, val)
     song_ID = cursor.fetchone()
     cursor.reset()
@@ -429,10 +419,9 @@ class DataBase:
   def getAccountNameFromDB(name):
     val = (name, )
     command = "SELECT Username FROM User WHERE Username = %s;"
-    cursor.execute(command, val)
-    account_name = cursor.fetchone()
+    accountName = cursor.execute(command, val)
     cursor.reset()
-    return account_name[0] if account_name else None
+    return accountName
 
   def getAccountIDFromDB(name):
     val = (name, )
@@ -468,7 +457,7 @@ class DataBase:
     val = (playlist_id, )
     command = "SELECT song_ID FROM Playlist_songs WHERE playlist_ID = %s;"
     cursor.execute(command, val)
-    songIDs = cursor.fetchone()
+    songIDs = cursor.fetchall()
     cursor.reset()
     #returns tuple with all song IDS in a playlist
     return songIDs
@@ -481,39 +470,6 @@ class DataBase:
     cursor.reset()
     return allPlaylists
   
-
-'''   
-if __name__ == "__main__":
- >>>>>>> a1fd897e074693fdb79dc39678278e641a503b53
-  #TESTING PLAYLIST METHODS
-
-  user_1 = Account("matt", "123")
-  print("hashed pw: " + user_1.getPassword())
-  my_pl = MusicPlaylist("Playlist 1")
-  search = input("What song would you like to add to the playlist? ")
-  query = my_pl.search_song(search)
-  #returns list of tuples containing the top 10 search results for the given song name
-  print(query)
-  selection = input("which index would you like to add to the playlist? ")
-  #add the desired search result to the playlist
-  my_pl.add_song(query[int(selection)])
-
-  print("\n")
-
-  search = input("What song would you like to add to the playlist? ")
-  query = my_pl.search_song(search)
-  #returns list of tuples containing the top 10 search results for the given song name
-  print(query)
-  selection = input("which index would you like to add to the playlist? ")
-  #add the desired search result to the playlist
-  my_pl.add_song(query[int(selection)])
-
-  my_pl.display_songs()
-
-  my_pl.shuffle()
-
-  my_pl.display_songs()
-'''
  
 
 class Login(tk.Tk):
@@ -619,19 +575,12 @@ class MainMenu(tk.Tk):
         left_frame = tk.Frame(self.mm_frame)
         # Pack the frame to the left side of the main frame
         left_frame.pack(side='left', fill='both')
-
-        #on login, iterate through database for a user's friends, then create buttons for them
-       # def create_friend_button(button_id):
-        #  new_button = tk.Button(MainMenu, text=f"Button {button_id}", command=lambda: button_click(button_id))
-        #  new_button.pack()
         
-
         # "Your Playlists Title + List of your Playlists"
         self.playlistsLabel = tk.Label(left_frame, text='Your Playlists', font='Arial 14')
         self.playlistsLabel.pack(side='top', fill='x')
 
         self.playlist = tk.Listbox(left_frame, width = 50, height = 30)
-        self.playlist.pack(side='top', fill='both')
 
          #on login, iterate through database for a user's playlists, then create buttons for them
         # Create a cursor object to execute SQL queries
@@ -643,16 +592,9 @@ class MainMenu(tk.Tk):
         for playlist_tuple in usersPlaylists:
           playlistName = playlist_tuple[0]  # Access the first element (Name)
           playlist_ID = playlist_tuple[1]  # Access the second element (playlist_ID)
-          new_label = tk.Label(left_frame, text=playlistName)
-          new_label.bind("<Button-1>", lambda event, pid = playlist_ID: (self.open_playlist(playlistName, pid)))
-          new_label.pack()
-
-        #for x in range(len(usersPlaylists)-1):
-         # playlistName = usersPlaylists[x+1]
-          #playlist_ID = usersPlaylists[]
-          #new_label = tk.Label(left_frame, text=playlistName)
-          #new_label.bind("<Button-1>", lambda event, pid = playlist_ID: (self.open_playlist(playlistName, pid)))
-          #new_label.pack()
+          self.playlist.insert(tk.END, playlistName)
+          self.playlist.bind("<Button-1>", lambda event, name = playlistName, pid = playlist_ID: (self.open_playlist(name, pid)))
+          self.playlist.pack(side='top', fill='both')
 
         # Back button
         self.back_button = tk.Button(left_frame, text = 'Return to Login', command = self.to_login)
@@ -686,13 +628,10 @@ class MainMenu(tk.Tk):
         self.createPlaylist = tk.Button(middle_frame, text='Create Playlist', font = 'Arial 14', height=10, width=20, command = lambda: self.create_playlist(self._user_ID)) # command = create_playlist
         self.createPlaylist.pack(expand = True, padx=30)
         
-        # Add Friend Button
+        # Follow Account Button
         self.addFriend = tk.Button(middle_frame, text='Follow an Account', font = 'Arial 14', height=10, width=20, command = self.add_follow) # command = add_friend
         self.addFriend.pack(expand = True, padx=30)
 
-        # Go to Search Screen Button
-        self.SearchButton = tk.Button(middle_frame, text='Search for Playlists', font = 'Arial 14', height=12, width=20, command=self.to_Search_Screen) # command = to_Search_Screen
-        self.SearchButton.pack(expand = True, padx=30)
 
         self.mm_frame.pack(fill='both')
 
@@ -747,12 +686,6 @@ class MainMenu(tk.Tk):
         self.withdraw()
         self.login = Login()
 
-    # Go to search
-    # Search Playlist function should be different from Search Song
-    # Is this supposed to be a search for songs from the main menu function?
-    def to_Search_Screen(self):
-        self.search = Search()
-
 
 #Follow an account
     def add_follow(self):
@@ -794,10 +727,8 @@ class MainMenu(tk.Tk):
 
 
 
-'''
 ############################################################################
 # Test for friend request function
-    user_data = {}
 
     # Add friend
     def add_friend(self):
@@ -811,7 +742,7 @@ class MainMenu(tk.Tk):
         entry.pack()
 
         # Create a confirmation button
-        confirm_button = tk.Button(window, text="Add Friend", command=lambda: self.send_fr(entry.get(), self._user_ID))
+        confirm_button = tk.Button(window, text="Add ", command=lambda: self.send_fr(entry.get(), self._user_ID))
         confirm_button.pack()
 
         # Create a cancel button
@@ -828,10 +759,10 @@ class MainMenu(tk.Tk):
             print(f"User not found: {username}")
 
     # Send Friend Request        
-    def send_fr(self, username, user_id):
-        if DataBase.getAccountNameFromDB(username) is not None :
+    def send_fr(username, user_ID):
+        if DataBase.getAccountNameFromDB(username) != None :
         # Send a friend request to the user
-            DataBase.sendFriendRequestFromDB(user_id, username)
+            DataBase.sendFriendRequestFromDB(user_ID, username)
             print(f"Friend request sent to {username}")
         else:
             print(f"User not found: {username}")
@@ -839,30 +770,30 @@ class MainMenu(tk.Tk):
     # Accept Friend Request
     def accept_friend_request(self, requester):
         # Condition: username exists and requester inputs their name 
-        if self.username in user_data and requester in user_data[self.username]['friend_requests']:
+        if self.username in DataBase and requester in DataBase[self.username]['friend_requests']:
         # 1) Remove the friend request from the user's list of friend requests
-            user_data[self.username]['friend_requests'].remove(requester)
+            DataBase[self.username]['friend_requests'].remove(requester)
 
         # 2) Add the requester as a friend of the user
-            if 'friends' not in user_data[self.username]:
-                user_data[self.username]['friends'] = []
-            user_data[self.username]['friends'].append(requester)
+            if 'friends' not in DataBase[self.username]:
+                DataBase[self.username]['friends'] = []
+            DataBase[self.username]['friends'].append(requester)
 
         # 3) Add the user as a friend of the requester
-            if 'friends' not in user_data[requester]:
-                user_data[requester]['friends'] = []
-            user_data[requester]['friends'].append(self.username)
+            if 'friends' not in DataBase[requester]:
+                DataBase[requester]['friends'] = []
+            DataBase[requester]['friends'].append(self.username)
             # Accept Message
             print(f"Friend request accepted from {requester}")
 
     # Decline Friend Request
     def reject_friend_request(self, requester):
-        if self.username in user_data and requester in user_data[self.username]['friend_requests']:
+        if self.username in DataBase and requester in DataBase[self.username]['friend_requests']:
         # Remove the friend request from the user's list of friend requests
-            user_data[self.username]['friend_requests'].remove(requester)
+            DataBase[self.username]['friend_requests'].remove(requester)
             # Decline Message
             print(f"Friend request rejected from {requester}")
-'''            
+            
 
 
               
@@ -887,6 +818,16 @@ class YourPlaylist(tk.Toplevel):
         self.table.heading('duration', text='Duration')
         self.table.pack(fill='both', expand = True)
 
+        userSongs = DataBase.getSongsFromPlaylist(self, playlistID)
+
+
+        for num in userSongs:
+          songName = DataBase.getSongNameFromDB(num[0])
+          songArtist = DataBase.getSongArtistFromDB(num[0])
+          songDuration = DataBase.getSongDurationFromDB(num[0])
+          time = ms_to_mins_secs(songDuration[0])
+          self.table.insert('', 'end', values = (songName, songArtist, time))
+
         self.title_label = ttk.Label(master=self.playlist_frame, font='Arial 18')
         self.title_label.pack()
 
@@ -905,22 +846,31 @@ class YourPlaylist(tk.Toplevel):
 
         if playlistID is not None:
           songList = DataBase.getSongsFromPlaylist(self, playlistID)
-          #print(songList)
-          #for x in range(len(songList)-1):
-           #  DataBase.addToPlaylist(playlistID, songList[x+1]) 
-
-#Playlist's songs = database.getallsongs etc
-#usersPlaylists = DataBase.getAllPlaylistsFromDB(user_ID)
-
-#iterate through result and create buttons with correct format
-         #buttons need to be in left frame
-      #  for x in range(len(usersPlaylists)-1):
-        #  playlistName = usersPlaylists[x+1]
-        #  new_label = tk.Label(left_frame, text=playlistName)
-         # new_label.bind("<Button-1>", lambda event, uid = user_ID: (self.open_playlist(playlistName, uid)))
-         # new_label.pack()
 
 # --------------------------------Playlist Functions ---------------------------------------------------
+        def play_selected(e):
+            selected = self.table.focus()
+            self.contents = self.table.item(selected)
+
+            name = self.contents['values'][0]
+            name_without_brackets = name[1:-1]
+
+           # name_without_brackets = name[1:-1]
+            print(name)
+           # print(name_without_brackets)
+            
+            try:
+              id = DataBase.getSongID(name)
+              print(id)
+              playSong(id[0])
+             
+            except:
+              id = DataBase.getSongID(name_without_brackets)
+              print(id)
+              playSong(id[0])
+
+        self.table.bind("<<TreeviewSelect>>", play_selected)
+
     def item_select(self, _):
         print(self.table.selection())
         for i in self.table.selection():
@@ -946,17 +896,18 @@ class YourPlaylist(tk.Toplevel):
     
     # Go to Search Screen
     def to_search(self):
-        if self.playlistID is not None:
-          self.withdraw()
-          self.search = Search(self, self.playlistID)
+        #if self.playlistID is not None:
+        self.withdraw()
+        self.search = Search(self, self.name, self.playlistID)
 
 
 class Search(tk.Tk):
-    def __init__(self, master, playlistID):
+    def __init__(self, master, name, playlistID):
         super().__init__()
         self.master = master  # Keep a reference to the parent window
         self.title('Search Screen')
         self.geometry("1600x900")
+        self.name = name
         self._playlist = playlistID
 
         self.search_frame = tk.Frame(self)
@@ -992,29 +943,27 @@ class Search(tk.Tk):
             selected = result_list.curselection()
             if selected:
                 new_song = (songs[selected[0]][0], songs[selected[0]][1], songs[selected[0]][2], songs[selected[0]][3])
-                #print(new_song)
-                print(songs[selected[0]][0])
+                print(new_song)
                 #self._playlist.add_song(new_song)
                 #self._playlist.display_songs()
-                if (DataBase.getSongID(new_song[0]) == new_song[0]):
+                if (DataBase.getSongID(new_song[1]) != new_song[0]):
                   DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
                   DataBase.addToPlaylist(playlistID, new_song[0])
+
                 else:
-                   DataBase.addToPlaylist(playlistID, new_song[0])
+                   DataBase.addToPlaylist(playlistID, new_song[1])
                 
-                #self._playlist.table.insert('', 'end', values=(new_song[1], new_song[2], new_song[3]))
-            # Add song to playlist
             
             #playSong() takes the id of the selected song
             #playSong(songs[selected[0]][0])
-        
+
         #on event, run the specified function
         search_bar.bind("<Return>", check)
         result_list.bind("<<ListboxSelect>>", add_selected)
 
     def to_playlist(self):
         self.withdraw()
-        self.master.deiconify()
+        self.playlist = YourPlaylist(self, self.name, self._playlist)
         #MusicPlaylist.add_song(selected)
 
 
@@ -1022,4 +971,3 @@ if __name__ == '__main__':
     print("Hello")
     app = Login()
     app.mainloop()
-
