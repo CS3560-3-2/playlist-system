@@ -587,14 +587,25 @@ class MainMenu(tk.Tk):
 
         #needs to return an array of all a user's playlists
         usersPlaylists = DataBase.getAllPlaylistsFromDB(user_ID)
-
+        
         #buttons need to be in left frame
-        for playlist_tuple in usersPlaylists:
-          playlistName = playlist_tuple[0]  # Access the first element (Name)
-          playlist_ID = playlist_tuple[1]  # Access the second element (playlist_ID)
-          self.playlist.insert(tk.END, playlistName)
-          self.playlist.bind("<Button-1>", lambda event, name = playlistName, pid = playlist_ID: (self.open_playlist(name, pid)))
-          self.playlist.pack(side='top', fill='both')
+       # for playlist_tuple in usersPlaylists:
+        #  playlistName = playlist_tuple[0]  # Access the first element (Name)
+         # playlist_ID = playlist_tuple[1]  # Access the second element (playlist_ID)
+          #self.playlist.insert(tk.END, playlistName)
+          #self.playlist.bind("<Button-1>", lambda event, name = playlistName, pid = playlist_ID: (self.open_playlist(name, pid)))
+          #print(playlistName, playlist_ID, ' 4')
+          #self.playlist.pack(side='top', fill='both')
+
+         #Create buttons for each playlist
+        for playlist_name, playlist_id in usersPlaylists:
+            #Insert playlist name into the listbox
+          self.playlist.insert(tk.END, playlist_name)
+          print(playlist_id)
+             #Create a button for the playlist
+          button = tk.Button(left_frame, text=playlist_name,
+                               command=lambda name = playlist_name, pid=playlist_id: self.open_playlist(name, pid))
+          button.pack(side='top', fill='both')
 
         # Back button
         self.back_button = tk.Button(left_frame, text = 'Return to Login', command = self.to_login)
@@ -634,7 +645,6 @@ class MainMenu(tk.Tk):
 
 
         self.mm_frame.pack(fill='both')
-
 
 # --------------------------------Main Menu Functions ---------------------------------------------------
     def create_playlist(self, user_ID):
@@ -947,7 +957,10 @@ class Search(tk.Tk):
                 #self._playlist.add_song(new_song)
                 #self._playlist.display_songs()
                 if (DataBase.getSongID(new_song[1]) != new_song[0]):
-                  DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
+                  try:
+                    DataBase.addSongsToDB(new_song[0], new_song[1], new_song[2], new_song[3]) 
+                  except:
+                     print()
                   DataBase.addToPlaylist(playlistID, new_song[0])
 
                 else:
