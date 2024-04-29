@@ -316,6 +316,13 @@ class DataBase:
     mydb.commit()
     cursor.reset()
 
+  def sendFollowFromDB(user_id, follow_id):
+    val = (user_id, follow_id)
+    command = "INSERT INTO Friends (user_ID, friend_ID) VALUES (%s, %s)"
+    cursor.execute(command, val)
+    mydb.commit()
+    cursor.reset()
+
   # Store list of friend requests in Freind request Table
   def sendFriendRequestFromDB(id, usernameTwo):
     val = (id, DataBase.getAccountIDFromDB(usernameTwo))
@@ -420,6 +427,7 @@ class DataBase:
     val = (name, )
     command = "SELECT Username FROM User WHERE Username = %s;"
     accountName = cursor.execute(command, val)
+    accountName = cursor.fetchone()
     cursor.reset()
     return accountName
 
@@ -601,7 +609,6 @@ class MainMenu(tk.Tk):
         for playlist_name, playlist_id in usersPlaylists:
             #Insert playlist name into the listbox
           self.playlist.insert(tk.END, playlist_name)
-          print(playlist_id)
              #Create a button for the playlist
           button = tk.Button(left_frame, text=playlist_name,
                                command=lambda name = playlist_name, pid=playlist_id: self.open_playlist(name, pid))
@@ -687,9 +694,6 @@ class MainMenu(tk.Tk):
 
     def open_playlist(self, playlistName, playlist_ID):
        self.new_playlist = YourPlaylist(self, playlistName, playlist_ID)
-       #YourPlaylist should retrive data from database using Database.getxxx(playlist_ID) to populate window
-       #atm buttons open a window titled playlist_ID, title should be playlist name
-       return 0
 
     # Return to login
     def to_login(self):
@@ -727,6 +731,7 @@ class MainMenu(tk.Tk):
 
     # Send Friend Request        
     def send_follow(self, username, user_id):
+        print(username)
         if DataBase.getAccountNameFromDB(username) is not None :
         # Send a friend request to the user
           followID = DataBase.getAccountIDFromDB(username)
